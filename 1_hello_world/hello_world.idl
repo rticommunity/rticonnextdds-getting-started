@@ -1,0 +1,9 @@
+
+// Hello world!
+struct HelloMessage {
+
+    // String with maximum length of 256 characters
+    string<256> msg;
+
+};
+
