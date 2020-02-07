@@ -9,33 +9,15 @@
 * any incidental or consequential damages arising out of the use or inability
 * to use the software.
 */
-/* hello_world_subscriber.cxx
 
-A subscription example of type HelloMessage
-
-To test it, follow these steps:
-
-
-(1) Compile this file and the example publication.
-
-(2) Start the subscription
-
-(3) Start the publication
-
-(4) [Optional] Specify the list of discovery initial peers and
-multicast receive addresses via an environment variable or a file
-(in the current working directory) called NDDS_DISCOVERY_PEERS.
-
-You can run any number of publisher and subscriber programs, and can
-add and remove them dynamically from the domain.
-*/
-
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "hello_world.h"
 #include "hello_worldSupport.h"
 #include "ndds/ndds_cpp.h"
+#include "application.h"
 
 static int shutdown(
         DDSDomainParticipant *participant,
@@ -43,43 +25,40 @@ static int shutdown(
         int status);
 
 // Process data. Returns number of samples processed.
-int process_data(HelloMessageDataReader *HelloMessage_reader)
+unsigned int process_data(HelloMessageDataReader *HelloMessage_reader)
 {
     HelloMessageSeq data_seq;
     DDS_SampleInfoSeq info_seq;
-    int count = 0;
+    unsigned int samples_read = 0;
 
     // Take available data from DataReader's queue
     DDS_ReturnCode_t retcode = DDS_RETCODE_OK;
     while (retcode != DDS_RETCODE_NO_DATA) {
         retcode = HelloMessage_reader->take(
                 data_seq,
-                info_seq,
-                DDS_LENGTH_UNLIMITED,
-                DDS_ANY_SAMPLE_STATE,
-                DDS_ANY_VIEW_STATE,
-                DDS_ANY_INSTANCE_STATE);
+                info_seq);
 
         // Iterate over all available data
-        for (int j = 0; j < data_seq.length(); ++j) {
+        for (int i = 0; i < data_seq.length(); ++i) {
             // Check if a sample is an instance lifecycle event
-            if (!info_seq[j].valid_data) {
-                printf("Received instance state notification\n");
+            if (!info_seq[i].valid_data) {
+                std::cout << "Received instance state notification" 
+                          << std::endl;
                 continue;
             }
             // Print data
-            HelloMessageTypeSupport::print_data(&data_seq[j]);
-            count++;
+            HelloMessageTypeSupport::print_data(&data_seq[i]);
+            samples_read++;
         }
         // Data sequence was loaned from middleware for performance.
         // Return loan when application is finished with data.
         HelloMessage_reader->return_loan(data_seq, info_seq);
     }
     
-    return count;
+    return samples_read;
 }
 
-int subscriber_run(int domain_id, int sample_count)
+int run_example(int domain_id, int sample_count)
 {
     // Connext DDS Setup
     // -----------------
@@ -93,7 +72,7 @@ int subscriber_run(int domain_id, int sample_count)
                     NULL /* listener */,
                     DDS_STATUS_MASK_NONE);
     if (participant == NULL) {
-        shutdown(participant, "create_participant error", -1);
+        shutdown(participant, "create_participant error", EXIT_FAILURE);
     }
 
     // A Subscriber allows an application to create one or more DataReaders
@@ -103,7 +82,7 @@ int subscriber_run(int domain_id, int sample_count)
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     if (subscriber == NULL) {
-        shutdown(participant, "create_subscriber error", -1);
+        shutdown(participant, "create_subscriber error", EXIT_FAILURE);
     }
 
     // Register the datatype to use when creating the Topic
@@ -111,7 +90,7 @@ int subscriber_run(int domain_id, int sample_count)
     DDS_ReturnCode_t retcode =
             HelloMessageTypeSupport::register_type(participant, type_name);
     if (retcode != DDS_RETCODE_OK) {
-        shutdown(participant, "register_type error", -1);
+        shutdown(participant, "register_type error", EXIT_FAILURE);
     }
 
     // A Topic has a name and a datatype. Create a Topic called
@@ -123,40 +102,41 @@ int subscriber_run(int domain_id, int sample_count)
             NULL /* listener */,
             DDS_STATUS_MASK_NONE);
     if (topic == NULL) {
-        shutdown(participant, "create_topic error", -1);
+        shutdown(participant, "create_topic error", EXIT_FAILURE);
     }
 
-    // This DataReader reads data on Topic "Example HelloMessage"
-    // DataReader QoS is configured in USER_QOS_PROFILES.xml
+    // This DataReader reads data of type HelloMessage on Topic
+    // "Example HelloMessage". DataReader QoS is configured in
+    // USER_QOS_PROFILES.xml
     DDSDataReader *reader = subscriber->create_datareader(
             topic,
             DDS_DATAREADER_QOS_DEFAULT,
             NULL,
             DDS_STATUS_MASK_NONE);
     if (reader == NULL) {
-        shutdown(participant, "create_datareader error", -1);
+        shutdown(participant, "create_datareader error", EXIT_FAILURE);
     }
 
     // Get status condition: Each entity has a Status Condition, which
     // gets triggered when a status becomes true
     DDSStatusCondition *status_condition = reader->get_statuscondition();
     if (status_condition == NULL) {
-        shutdown(participant, "get_statuscondition error", -1);
+        shutdown(participant, "get_statuscondition error", EXIT_FAILURE);
     }
 
     // Enable only the status we are interested in:
     //   DDS_DATA_AVAILABLE_STATUS
     retcode = status_condition->set_enabled_statuses(DDS_DATA_AVAILABLE_STATUS);
     if (retcode != DDS_RETCODE_OK) {
-        shutdown(participant, "set_enabled_statuses error", -1);
+        shutdown(participant, "set_enabled_statuses error", EXIT_FAILURE);
     }
 
     // Create the WaitSet and attach the Status Condition to it. The WaitSet
     // will be woken when the condition is triggered.
-    DDSWaitSet *waitset = new DDSWaitSet();
-    retcode = waitset->attach_condition(status_condition);
+    DDSWaitSet waitset;
+    retcode = waitset.attach_condition(status_condition);
     if (retcode != DDS_RETCODE_OK) {
-        shutdown(participant, "attach_condition error", -1);
+        shutdown(participant, "attach_condition error", EXIT_FAILURE);
     }
 
     // A narrow is a cast from a generic DataReader to one that is specific
@@ -164,26 +144,27 @@ int subscriber_run(int domain_id, int sample_count)
     HelloMessageDataReader *HelloMessage_reader =
             HelloMessageDataReader::narrow(reader);
     if (HelloMessage_reader == NULL) {
-        shutdown(participant, "DataReader narrow error", -1);
+        shutdown(participant, "DataReader narrow error", EXIT_FAILURE);
     }
 
     // Main loop. Wait for data to arrive, and process when it arrives.
     // ----------------------------------------------------------------
-    int count = 0;
-    while (count < sample_count || sample_count == 0) {
+    unsigned int samples_read = 0;
+    while (samples_read < sample_count || sample_count == 0) {
         DDSConditionSeq active_conditions_seq;
 
         // wait() blocks execution of the thread until one or more attached
         // Conditions become true, or until a user-specified timeout expires.
         DDS_Duration_t wait_timeout = { 4, 0 };
-        retcode = waitset->wait(active_conditions_seq, wait_timeout);
+        retcode = waitset.wait(active_conditions_seq, wait_timeout);
 
         // You get a timeout if no conditions were triggered before the timeout
         if (retcode == DDS_RETCODE_TIMEOUT) {
-            printf("Wait timed out. No conditions were triggered.\n");
+            std::cout << "Wait timed out. No conditions were triggered." 
+                      << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
-            printf("wait returned error: %d\n", retcode);
+            std::cerr << "wait returned error: " << retcode << std::endl;
             break;
         }
 
@@ -194,14 +175,12 @@ int subscriber_run(int domain_id, int sample_count)
 
         // If the status is "Data Available"
         if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
-            count += process_data(HelloMessage_reader);
+            samples_read += process_data(HelloMessage_reader);
         }
     }
 
     // Cleanup
     // -------
-    delete waitset;
-
     // Delete all entities (DataReader, Topic, Subscriber, DomainParticipant)
     return shutdown(participant, "shutting down", 0);
 }
@@ -214,52 +193,53 @@ static int shutdown(
 {
     DDS_ReturnCode_t retcode;
 
-    printf("%s\n", shutdown_message);
+    std::cout << shutdown_message << std::endl;
 
     if (participant != NULL) {
         // This includes everything created by this Participant, including
         // DataWriters, Topics, Publishers. (and Subscribers and DataReaders)
         retcode = participant->delete_contained_entities();
         if (retcode != DDS_RETCODE_OK) {
-            fprintf(stderr, "delete_contained_entities error %d\n", retcode);
-            status = -1;
+            std::cerr << "delete_contained_entities error" << retcode 
+                      << std::endl;
+            status = EXIT_FAILURE;
         }
 
         retcode = DDSTheParticipantFactory->delete_participant(participant);
         if (retcode != DDS_RETCODE_OK) {
-            fprintf(stderr, "delete_participant error %d\n", retcode);
-            status = -1;
+            std::cerr << "delete_participant error" << retcode << std::endl;
+            status = EXIT_FAILURE;
         }
     }
+    return status;
+}
+
+// Sets Connext verbosity to help debugging
+void set_verbosity(unsigned int verbosity) 
+{
+    NDDSConfigLogger::get_instance()->set_verbosity((NDDS_Config_LogVerbosity)verbosity);
+}
+
+int main(int argc, char *argv[])
+{
+    // Parse arguments
+    unsigned int domain_id = 0;
+    unsigned int sample_count = 0;  // infinite
+    unsigned int verbosity = 0;
+    parse_arguments(argc, argv, &domain_id, &sample_count, &verbosity);
+
+    // Enables different levels of debugging output
+    set_verbosity(verbosity);
+
+    int status = run_example(domain_id, sample_count);
 
     // Releases the memory used by the participant factory.
-    retcode = DDSDomainParticipantFactory::finalize_instance();
+    DDS_ReturnCode_t retcode = DDSDomainParticipantFactory::finalize_instance();
     if (retcode != DDS_RETCODE_OK) {
-        fprintf(stderr, "finalize_instance error %d\n", retcode);
-        status = -1;
+        std::cerr << "finalize_instance error" << retcode << std::endl;
+        status = EXIT_FAILURE;
     }
 
     return status;
 }
 
-int main(int argc, char *argv[])
-{
-
-    int domain_id = 0;
-    int sample_count = 0;  // infinite loop
-
-    if (argc >= 2) {
-        domain_id = atoi(argv[1]);
-    }
-    if (argc >= 3) {
-        sample_count = atoi(argv[2]);
-    }
-
-    // Uncomment this to turn on additional logging
-    // NDDSConfigLogger::get_instance()->
-    // set_verbosity_by_category(NDDS_CONFIG_LOG_CATEGORY_API,
-    // NDDS_CONFIG_LOG_VERBOSITY_STATUS_ALL);
-
-    return subscriber_run(domain_id, sample_count);
-
-}
