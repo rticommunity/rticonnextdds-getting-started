@@ -2,6 +2,22 @@
 #define APPLICATION_H
 
 #include <iostream>
+#include <csignal>
+
+// Catch control-C and tell application to shut down
+bool running = true;
+
+void stop_handler(int)
+{
+    running = false;
+    std::cout << "preparing to shut down..." << std::endl;
+}
+
+void setup_signal_handlers()
+{
+    signal(SIGINT, stop_handler);
+    signal(SIGTERM, stop_handler);
+}
 
 // Parses application arguments for example.
 void parse_arguments(

@@ -41,7 +41,8 @@ void run_example(int domain_id, int sample_count)
 
     // Create data sample for writing
     HelloMessage sample;
-    for (int count = 0; count < sample_count || sample_count == 0; count++) {
+    for (int count = 0; running && (count < sample_count || sample_count == 0);
+         count++) {
         // Modify the data to be written here
 
         std::cout << "Writing HelloMessage, count " << count << std::endl;
@@ -61,11 +62,12 @@ void set_verbosity(unsigned int verbosity)
 
 int main(int argc, char *argv[])
 {
-    // Parse arguments
+    // Parse arguments and handle control-C
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite loop
     unsigned int verbosity = 0;
     parse_arguments(argc, argv, domain_id, sample_count, verbosity);
+    setup_signal_handlers();
 
     // Enables different levels of debugging output
     set_verbosity(verbosity);

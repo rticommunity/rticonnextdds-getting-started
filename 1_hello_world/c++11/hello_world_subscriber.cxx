@@ -37,7 +37,7 @@ unsigned int process_data(dds::sub::DataReader<HelloMessage>& reader)
     return samples_read;
 }  // The LoanedSamples destructor returns the loan
 
-void run_example(int domain_id, int sample_count)
+void run_example(unsigned int domain_id, unsigned int sample_count)
 {
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
@@ -74,7 +74,7 @@ void run_example(int domain_id, int sample_count)
     dds::core::cond::WaitSet waitset;
     waitset += status_condition;
 
-    while (samples_read < sample_count || sample_count == 0) {
+    while (running && (samples_read < sample_count || sample_count == 0)) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
         std::cout << "HelloMessage subscriber sleeping for 4 sec..."
@@ -93,11 +93,12 @@ void set_verbosity(unsigned int verbosity)
 
 int main(int argc, char *argv[])
 {
-    // Parse arguments
+    // Parse arguments and handle control-C
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite loop
     unsigned int verbosity = 0;
     parse_arguments(argc, argv, domain_id, sample_count, verbosity);
+    setup_signal_handlers();
 
     // Enables different levels of debugging output
     set_verbosity(verbosity);

@@ -32,28 +32,22 @@ unsigned int process_data(HelloMessageDataReader *HelloMessage_reader)
     unsigned int samples_read = 0;
 
     // Take available data from DataReader's queue
-    DDS_ReturnCode_t retcode = DDS_RETCODE_OK;
-    while (retcode != DDS_RETCODE_NO_DATA) {
-        retcode = HelloMessage_reader->take(
-                data_seq,
-                info_seq);
+    DDS_ReturnCode_t retcode = HelloMessage_reader->take(data_seq, info_seq);
 
-        // Iterate over all available data
-        for (int i = 0; i < data_seq.length(); ++i) {
-            // Check if a sample is an instance lifecycle event
-            if (!info_seq[i].valid_data) {
-                std::cout << "Received instance state notification" 
-                          << std::endl;
-                continue;
-            }
-            // Print data
-            HelloMessageTypeSupport::print_data(&data_seq[i]);
-            samples_read++;
+    // Iterate over all available data
+    for (int i = 0; i < data_seq.length(); ++i) {
+        // Check if a sample is an instance lifecycle event
+        if (!info_seq[i].valid_data) {
+            std::cout << "Received instance state notification" << std::endl;
+            continue;
         }
-        // Data sequence was loaned from middleware for performance.
-        // Return loan when application is finished with data.
-        HelloMessage_reader->return_loan(data_seq, info_seq);
+        // Print data
+        HelloMessageTypeSupport::print_data(&data_seq[i]);
+        samples_read++;
     }
+    // Data sequence was loaned from middleware for performance.
+    // Return loan when application is finished with data.
+    HelloMessage_reader->return_loan(data_seq, info_seq);
     
     return samples_read;
 }
@@ -150,7 +144,7 @@ int run_example(int domain_id, int sample_count)
     // Main loop. Wait for data to arrive, and process when it arrives.
     // ----------------------------------------------------------------
     unsigned int samples_read = 0;
-    while (samples_read < sample_count || sample_count == 0) {
+    while (running && (samples_read < sample_count || sample_count == 0)) {
         DDSConditionSeq active_conditions_seq;
 
         // wait() blocks execution of the thread until one or more attached
@@ -217,16 +211,18 @@ static int shutdown(
 // Sets Connext verbosity to help debugging
 void set_verbosity(unsigned int verbosity) 
 {
-    NDDSConfigLogger::get_instance()->set_verbosity((NDDS_Config_LogVerbosity)verbosity);
+    NDDSConfigLogger::get_instance()->set_verbosity(
+            (NDDS_Config_LogVerbosity) verbosity);
 }
 
 int main(int argc, char *argv[])
 {
-    // Parse arguments
+    // Parse arguments and handle control-C
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite
     unsigned int verbosity = 0;
     parse_arguments(argc, argv, &domain_id, &sample_count, &verbosity);
+    setup_signal_handlers();
 
     // Enables different levels of debugging output
     set_verbosity(verbosity);
@@ -242,4 +238,3 @@ int main(int argc, char *argv[])
 
     return status;
 }
-

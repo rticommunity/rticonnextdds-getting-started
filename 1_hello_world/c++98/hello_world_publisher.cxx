@@ -101,7 +101,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
     // Main loop, write data
     // ---------------------
-    for (int count = 0; (sample_count == 0) || (count < sample_count);
+    for (unsigned int count = 0;
+         running && ((sample_count == 0) || (count < sample_count));
          ++count) {
         // Modify the data to be written here
 
@@ -162,16 +163,18 @@ static int shutdown(
 // Sets Connext verbosity to help debugging
 void set_verbosity(unsigned int verbosity)
 {
-    NDDSConfigLogger::get_instance()->set_verbosity((NDDS_Config_LogVerbosity)verbosity);
+    NDDSConfigLogger::get_instance()->set_verbosity(
+            (NDDS_Config_LogVerbosity) verbosity);
 }
 
 int main(int argc, char *argv[])
 {
-    // Parse arguments
+    // Parse arguments and handle control-C
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite
     unsigned int verbosity = 0;
     parse_arguments(argc, argv, &domain_id, &sample_count, &verbosity);
+    setup_signal_handlers();
 
     // Enables different levels of debugging output
     set_verbosity(verbosity);
