@@ -27,8 +27,8 @@ void run_example(int domain_id, int sample_count)
     // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
     dds::domain::DomainParticipant participant(domain_id);
 
-    // A Topic has a name and a datatype. Create a Topic named 
-    // "Example HelloMessage" with type     HelloMessage
+    // A Topic has a name and a datatype. Create a Topic named
+    // "Example HelloMessage" with type HelloMessage
     dds::topic::Topic<HelloMessage> topic(participant, "Example HelloMessage");
 
     // A Publisher allows an application to create one or more DataWriters
@@ -54,7 +54,7 @@ void run_example(int domain_id, int sample_count)
 }
 
 // Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity) 
+void set_verbosity(unsigned int verbosity)
 {
     rti::config::Logger::instance().verbosity(
             static_cast<rti::config::Verbosity::inner_enum>(verbosity));
@@ -66,7 +66,15 @@ int main(int argc, char *argv[])
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite loop
     unsigned int verbosity = 0;
-    parse_arguments(argc, argv, domain_id, sample_count, verbosity);
+    ParseReturn parse_return_value =
+            parse_arguments(domain_id, sample_count, verbosity, argc, argv);
+
+    if (parse_return_value == EXIT) {
+        return EXIT_SUCCESS;
+    } else if (parse_return_value == ERROR) {
+        return EXIT_FAILURE;
+    }
+
     setup_signal_handlers();
 
     // Enables different levels of debugging output
@@ -76,7 +84,7 @@ int main(int argc, char *argv[])
         run_example(domain_id, sample_count);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
-        std::cerr << "Exception in publisher_main(): " << ex.what() 
+        std::cerr << "Exception in publisher_main(): " << ex.what()
                   << std::endl;
         return EXIT_FAILURE;
     }

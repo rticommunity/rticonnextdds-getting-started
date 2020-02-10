@@ -154,7 +154,7 @@ int run_example(int domain_id, int sample_count)
 
         // You get a timeout if no conditions were triggered before the timeout
         if (retcode == DDS_RETCODE_TIMEOUT) {
-            std::cout << "Wait timed out. No conditions were triggered." 
+            std::cout << "Wait timed out. No conditions were triggered."
                       << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
@@ -194,7 +194,7 @@ static int shutdown(
         // DataWriters, Topics, Publishers. (and Subscribers and DataReaders)
         retcode = participant->delete_contained_entities();
         if (retcode != DDS_RETCODE_OK) {
-            std::cerr << "delete_contained_entities error" << retcode 
+            std::cerr << "delete_contained_entities error" << retcode
                       << std::endl;
             status = EXIT_FAILURE;
         }
@@ -209,10 +209,10 @@ static int shutdown(
 }
 
 // Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity) 
+void set_verbosity(unsigned int verbosity)
 {
     NDDSConfigLogger::get_instance()->set_verbosity(
-            (NDDS_Config_LogVerbosity) verbosity);
+            static_cast<NDDS_Config_LogVerbosity>(verbosity));
 }
 
 int main(int argc, char *argv[])
@@ -221,7 +221,14 @@ int main(int argc, char *argv[])
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite
     unsigned int verbosity = 0;
-    parse_arguments(argc, argv, &domain_id, &sample_count, &verbosity);
+
+    ParseReturn parse_return_value =
+            parse_arguments(domain_id, sample_count, verbosity, argc, argv);
+    if (parse_return_value == EXIT) {
+        return EXIT_SUCCESS;
+    } else if (parse_return_value == ERROR) {
+        return EXIT_FAILURE;
+    }
     setup_signal_handlers();
 
     // Enables different levels of debugging output

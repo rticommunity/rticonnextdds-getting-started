@@ -23,7 +23,7 @@
 
 unsigned int process_data(dds::sub::DataReader<HelloMessage>& reader)
 {
-    // Take all samples.  Samples are loaned to application, loan is 
+    // Take all samples.  Samples are loaned to application, loan is
     // returned when LoanedSamples destructor called.
     unsigned int samples_read = 0;
     dds::sub::LoanedSamples<HelloMessage> samples = reader.take();
@@ -61,7 +61,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
 
     // Enable the 'data available' status.
     status_condition.enabled_statuses(
-        dds::core::status::StatusMask::data_available());
+            dds::core::status::StatusMask::data_available());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered.
@@ -97,7 +97,14 @@ int main(int argc, char *argv[])
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // infinite loop
     unsigned int verbosity = 0;
-    parse_arguments(argc, argv, domain_id, sample_count, verbosity);
+
+    ParseReturn parse_return_value =
+            parse_arguments(domain_id, sample_count, verbosity, argc, argv);
+    if (parse_return_value == EXIT) {
+        return EXIT_SUCCESS;
+    } else if (parse_return_value == ERROR) {
+        return EXIT_FAILURE;
+    }
     setup_signal_handlers();
 
     // Enables different levels of debugging output
