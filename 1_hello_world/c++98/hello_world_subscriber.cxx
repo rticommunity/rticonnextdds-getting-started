@@ -154,8 +154,7 @@ int run_example(int domain_id, int sample_count)
 
         // You get a timeout if no conditions were triggered before the timeout
         if (retcode == DDS_RETCODE_TIMEOUT) {
-            std::cout << "Wait timed out. No conditions were triggered."
-                      << std::endl;
+            std::cout << "Wait timed out after 4 seconds." << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
             std::cerr << "wait returned error: " << retcode << std::endl;
