@@ -21,6 +21,8 @@
 #include "hello_world.hpp"
 #include "application.hpp"  // Argument parsing
 
+using namespace application;
+
 unsigned int process_data(dds::sub::DataReader<HelloMessage>& reader)
 {
     // Take all samples.  Samples are loaned to application, loan is
@@ -44,7 +46,8 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     // Create a DomainParticipant with default Qos
     dds::domain::DomainParticipant participant(domain_id);
 
-    // Create a Topic -- and automatically register the type
+    // A Topic has a name and a datatype. Create a Topic named
+    // "Example HelloMessage" with type HelloMessage
     dds::topic::Topic<HelloMessage> topic(participant, "Example HelloMessage");
 
     // A Subscriber allows an application to create one or more DataReaders
@@ -64,7 +67,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
             dds::core::status::StatusMask::data_available());
 
     // Associate a handler with the status condition. This will run when the
-    // condition is triggered.
+    // condition is triggered, in the context of the dispatch call (see below)
     unsigned int samples_read = 0;
     status_condition.extensions().handler([&reader, &samples_read]() {
         samples_read += process_data(reader);
@@ -85,30 +88,25 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
 }
 
 // Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity)
+void set_verbosity(rti::config::Verbosity verbosity)
 {
-    rti::config::Logger::instance().verbosity(
-            static_cast<rti::config::Verbosity::inner_enum>(verbosity));
+    rti::config::Logger::instance().verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
-    unsigned int domain_id = 0;
-    unsigned int sample_count = 0;  // infinite loop
-    unsigned int verbosity = 0;
-
-    ParseReturn parse_return_value =
-            parse_arguments(domain_id, sample_count, verbosity, argc, argv);
-    if (parse_return_value == EXIT) {
+    ApplicationArguments arguments;
+    parse_arguments(arguments, argc, argv);
+    if (arguments.parse_result == ParseReturn::EXIT) {
         return EXIT_SUCCESS;
-    } else if (parse_return_value == ERROR) {
+    } else if (arguments.parse_result == ParseReturn::ERROR) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
 
     // Enables different levels of debugging output
-    set_verbosity(verbosity);
+    set_verbosity(arguments.verbosity);
 
     try {
         run_example(domain_id, sample_count);
@@ -119,7 +117,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Releases the memory used by the participant factory.
+    // Releases the memory used by the participant factory.  Optional at
+    // application shutdown
     dds::domain::DomainParticipant::finalize_participant_factory();
 
     return EXIT_SUCCESS;

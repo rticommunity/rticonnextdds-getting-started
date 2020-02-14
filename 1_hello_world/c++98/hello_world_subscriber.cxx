@@ -19,6 +19,8 @@
 #include "ndds/ndds_cpp.h"
 #include "application.h"
 
+using namespace application;
+
 static int shutdown(
         DDSDomainParticipant *participant,
         const char *shutdown_message,
@@ -208,34 +210,30 @@ static int shutdown(
 }
 
 // Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity)
+void set_verbosity(NDDS_Config_LogVerbosity verbosity)
 {
-    NDDSConfigLogger::get_instance()->set_verbosity(
-            static_cast<NDDS_Config_LogVerbosity>(verbosity));
+    NDDSConfigLogger::get_instance()->set_verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
-    unsigned int domain_id = 0;
-    unsigned int sample_count = 0;  // infinite
-    unsigned int verbosity = 0;
-
-    ParseReturn parse_return_value =
-            parse_arguments(domain_id, sample_count, verbosity, argc, argv);
-    if (parse_return_value == EXIT) {
+    ApplicationArguments arguments;
+    parse_arguments(arguments, argc, argv);
+    if (arguments.parse_result == EXIT) {
         return EXIT_SUCCESS;
-    } else if (parse_return_value == ERROR) {
+    } else if (arguments.parse_result == ERROR) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
 
     // Enables different levels of debugging output
-    set_verbosity(verbosity);
+    set_verbosity(arguments.verbosity);
 
-    int status = run_example(domain_id, sample_count);
+    int status = run_example(arguments.domain_id, arguments.sample_count);
 
-    // Releases the memory used by the participant factory.
+    // Releases the memory used by the participant factory.  Optional at
+    // application shutdown
     DDS_ReturnCode_t retcode = DDSDomainParticipantFactory::finalize_instance();
     if (retcode != DDS_RETCODE_OK) {
         std::cerr << "finalize_instance error" << retcode << std::endl;
