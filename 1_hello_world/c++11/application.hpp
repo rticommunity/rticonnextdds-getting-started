@@ -44,27 +44,29 @@ struct ApplicationArguments {
 };
 
 // Parses application arguments for example.
-inline void parse_arguments(
-        ApplicationArguments& arguments,
+inline ApplicationArguments parse_arguments(
         int argc,
         char *argv[])
 {
     int arg_processing = 1;
     bool show_usage = false;
-    arguments.parse_result = ParseReturn::OK;
+    ParseReturn parse_result = ParseReturn::OK;
+    unsigned int domain_id = 0;
+    unsigned int sample_count = 0;  // Infinite
+    rti::config::Verbosity verbosity;
 
     while (arg_processing < argc) {
         if (strcmp(argv[arg_processing], "-d") == 0
                 || strcmp(argv[arg_processing], "--domain") == 0) {
-            arguments.domain_id = atoi(argv[arg_processing + 1]);
+            domain_id = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
         } else if (strcmp(argv[arg_processing], "-s") == 0
                 || strcmp(argv[arg_processing], "--sample-count") == 0) {
-            arguments.sample_count = atoi(argv[arg_processing + 1]);
+            sample_count = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
         } else if (strcmp(argv[arg_processing], "-v") == 0
                 || strcmp(argv[arg_processing], "--verbosity") == 0) {
-            arguments.verbosity =
+            verbosity =
                     static_cast<rti::config::Verbosity::inner_enum>(
                             atoi(argv[arg_processing + 1]));
             arg_processing += 2;
@@ -72,12 +74,12 @@ inline void parse_arguments(
                 || strcmp(argv[arg_processing], "--help") == 0) {
             std::cout << "Example application." << std::endl;
             show_usage = true;
-            arguments.parse_result = ParseReturn::EXIT;
+            parse_result = ParseReturn::EXIT;
             break;
         } else {
             std::cout << "Bad parameter." << std::endl;
             show_usage = true;
-            arguments.parse_result = ParseReturn::ERROR;
+            parse_result = ParseReturn::ERROR;
             break;
         }
     }
@@ -94,6 +96,8 @@ inline void parse_arguments(
                     "                               Default: 0"
                 << std::endl;
     }
+
+        return {parse_result, domain_id, sample_count, verbosity};
 }
 
 }  // namespace application

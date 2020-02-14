@@ -96,8 +96,7 @@ void set_verbosity(rti::config::Verbosity verbosity)
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
-    ApplicationArguments arguments;
-    parse_arguments(arguments, argc, argv);
+    auto arguments = parse_arguments(argc, argv);
     if (arguments.parse_result == ParseReturn::EXIT) {
         return EXIT_SUCCESS;
     } else if (arguments.parse_result == ParseReturn::ERROR) {
@@ -109,7 +108,7 @@ int main(int argc, char *argv[])
     set_verbosity(arguments.verbosity);
 
     try {
-        run_example(domain_id, sample_count);
+        run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // All DDS exceptions inherit from std::exception
         std::cerr << "Exception in subscriber_main(): " << ex.what()

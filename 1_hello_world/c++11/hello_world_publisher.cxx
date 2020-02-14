@@ -64,8 +64,7 @@ void set_verbosity(rti::config::Verbosity verbosity)
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
-    ApplicationArguments arguments;
-    parse_arguments(arguments, argc, argv);
+    auto arguments = parse_arguments(argc, argv);
     if (arguments.parse_result == ParseReturn::EXIT) {
         return EXIT_SUCCESS;
     } else if (arguments.parse_result == ParseReturn::ERROR) {
