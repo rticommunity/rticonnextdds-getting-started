@@ -7,6 +7,7 @@ The patterns we will be showing  can be described in a nutshell:
 * Streaming/sensor data (Temperature)
 * State data (Chocolate Lot State)
 
+An overview of the individual examples:
 * Publish/Subscribe examples
     * 1_hello_world: First introduction to Connext DDS publish/subscribe
     * 2_streaming_data: Data types and the streaming data pattern
