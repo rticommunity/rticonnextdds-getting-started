@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     auto arguments = parse_arguments(argc, argv);
     if (arguments.parse_result == ParseReturn::EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::ERROR) {
+    } else if (arguments.parse_result == ParseReturn::FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();

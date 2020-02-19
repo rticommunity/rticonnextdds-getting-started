@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
     parse_arguments(arguments, argc, argv);
     if (arguments.parse_result == EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ERROR) {
+    } else if (arguments.parse_result == FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();

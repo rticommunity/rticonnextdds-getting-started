@@ -33,7 +33,7 @@ inline void setup_signal_handlers()
     signal(SIGTERM, stop_handler);
 }
 
-enum ParseReturn { OK, ERROR, EXIT };
+enum ParseReturn { OK, FAILURE, EXIT };
 
 struct ApplicationArguments {
     ParseReturn parse_result;
@@ -76,7 +76,7 @@ inline void parse_arguments(
         } else {
             std::cout << "Bad parameter." << std::endl;
             show_usage = true;
-            arguments.parse_result = ERROR;
+            arguments.parse_result = FAILURE;
             break;
         }
     }

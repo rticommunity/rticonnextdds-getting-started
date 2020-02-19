@@ -14,6 +14,7 @@
 #define APPLICATION_HPP
 
 #include <iostream>
+#include <csignal>
 #include <dds/core/ddscore.hpp>
 
 
@@ -34,7 +35,7 @@ inline void setup_signal_handlers()
     signal(SIGTERM, stop_handler);
 }
 
-enum class ParseReturn { OK, ERROR, EXIT };
+enum class ParseReturn { OK, FAILURE, EXIT };
 
 struct ApplicationArguments {
     ParseReturn parse_result;
@@ -77,7 +78,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
         } else {
             std::cout << "Bad parameter." << std::endl;
             show_usage = true;
-            parse_result = ParseReturn::ERROR;
+            parse_result = ParseReturn::FAILURE;
             break;
         }
     }
