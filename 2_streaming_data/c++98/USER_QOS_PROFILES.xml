@@ -49,7 +49,7 @@
                  Configures the DataWriter in the example code. -->
             <datawriter_qos>
                 <publication_name>
-                    <name>HelloWorldDataWriter</name>
+                    <name>ChocolateTemperatureDataWriter</name>
                 </publication_name>
             </datawriter_qos>
 
@@ -57,7 +57,7 @@
                  Configures the DataReader in the example code. -->
             <datareader_qos>
                 <subscription_name>
-                    <name>HelloWorldDataReader</name>
+                    <name>ChocolateTemperatureDataReader</name>
                 </subscription_name>
             </datareader_qos>
 
@@ -70,7 +70,7 @@
                 application from another when you're debugging.
                 -->
                 <participant_name>
-                    <name>HelloWorldParticipant</name>
+                    <name>TemperingAppParticipant</name>
                 </participant_name>
 
             </participant_qos>
