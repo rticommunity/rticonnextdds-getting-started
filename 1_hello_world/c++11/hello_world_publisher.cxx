@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
     auto arguments = parse_arguments(argc, argv);
-    if (arguments.parse_result == ParseReturn::EXIT) {
+    if (arguments.parse_result == ParseReturn::PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::ERROR) {
+    } else if (arguments.parse_result == ParseReturn::PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
