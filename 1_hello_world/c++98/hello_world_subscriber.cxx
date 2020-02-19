@@ -54,7 +54,7 @@ unsigned int process_data(HelloMessageDataReader *HelloMessage_reader)
     return samples_read;
 }
 
-int run_example(int domain_id, int sample_count)
+int run_example(unsigned int domain_id, unsigned int sample_count)
 {
     // Connext DDS Setup
     // -----------------
