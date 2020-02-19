@@ -114,8 +114,7 @@ int run_example(
         sample->degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
 
-        std::cout << "Writing Chocolate Temperature, count "
-                  << count
+        std::cout << "Writing Chocolate Temperature, count " << count
                   << std::endl;
         retcode = Temperature_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
@@ -182,9 +181,9 @@ int main(int argc, char *argv[])
     // Parse arguments and handle control-C
     ApplicationArguments arguments;
     parse_arguments(arguments, argc, argv);
-    if (arguments.parse_result == EXIT) {
+    if (arguments.parse_result == PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ERROR) {
+    } else if (arguments.parse_result == PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();

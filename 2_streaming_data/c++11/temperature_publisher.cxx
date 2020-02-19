@@ -22,7 +22,10 @@
 
 using namespace application;
 
-void run_example(int domain_id, int sample_count, const std::string& sensor_id)
+void run_example(
+        unsigned int domain_id,
+        unsigned int sample_count,
+        const std::string& sensor_id)
 {
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
@@ -49,8 +52,7 @@ void run_example(int domain_id, int sample_count, const std::string& sensor_id)
         sample.sensor_id(sensor_id);
         sample.degrees(rand() % 3 + 30);  // Random number between 30 and 32
 
-        std::cout << "Writing Chocolate Temperature, count " 
-                  << count
+        std::cout << "Writing Chocolate Temperature, count " << count
                   << std::endl;
 
         writer.write(sample);
@@ -69,9 +71,9 @@ int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
     auto arguments = parse_arguments(argc, argv);
-    if (arguments.parse_result == ParseReturn::EXIT) {
+    if (arguments.parse_result == ParseReturn::PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::ERROR) {
+    } else if (arguments.parse_result == ParseReturn::PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();

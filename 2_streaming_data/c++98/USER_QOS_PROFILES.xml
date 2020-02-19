@@ -22,7 +22,7 @@
     $NDDSHOME/resource/xml/ directory.
 -->
 <dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:noNamespaceSchemaLocation="/Applications/rti_connext_dds-6.0.1/resource/schema/rti_dds_qos_profiles.xsd">
+     xsi:noNamespaceSchemaLocation="https://community.rti.com/schema/current/rti_dds_qos_profiles.xsd">
     <!--
         QoS Library containing the QoS profile used in this example.
         A QoS library is a named set of QoS profiles.

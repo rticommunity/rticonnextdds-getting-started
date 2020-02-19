@@ -14,6 +14,7 @@
 #define APPLICATION_HPP
 
 #include <iostream>
+#include <csignal>
 #include <dds/core/ddscore.hpp>
 
 
@@ -34,7 +35,11 @@ inline void setup_signal_handlers()
     signal(SIGTERM, stop_handler);
 }
 
-enum class ParseReturn { OK, ERROR, EXIT };
+enum class ParseReturn {
+    PARSE_RETURN_OK,
+    PARSE_RETURN_FAILURE,
+    PARSE_RETURN_EXIT
+};
 
 struct ApplicationArguments {
     ParseReturn parse_result;
@@ -49,7 +54,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
 {
     int arg_processing = 1;
     bool show_usage = false;
-    ParseReturn parse_result = ParseReturn::OK;
+    ParseReturn parse_result = ParseReturn::PARSE_RETURN_OK;
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // Infinite
     std::string sensor_id;
@@ -78,12 +83,12 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                 || strcmp(argv[arg_processing], "--help") == 0) {
             std::cout << "Example application." << std::endl;
             show_usage = true;
-            parse_result = ParseReturn::EXIT;
+            parse_result = ParseReturn::PARSE_RETURN_EXIT;
             break;
         } else {
             std::cout << "Bad parameter." << std::endl;
             show_usage = true;
-            parse_result = ParseReturn::ERROR;
+            parse_result = ParseReturn::PARSE_RETURN_FAILURE;
             break;
         }
     }

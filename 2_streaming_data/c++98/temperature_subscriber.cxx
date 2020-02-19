@@ -54,7 +54,7 @@ unsigned int process_data(TemperatureDataReader *Temperature_reader)
     return samples_read;
 }
 
-int run_example(int domain_id, int sample_count)
+int run_example(unsigned int domain_id, unsigned int sample_count)
 {
     // Connext DDS Setup
     // -----------------
@@ -165,8 +165,7 @@ int run_example(int domain_id, int sample_count)
 
         // Get the status changes to check which status condition
         // triggered the the WaitSet to wake
-        DDS_StatusMask triggeredmask =
-                Temperature_reader->get_status_changes();
+        DDS_StatusMask triggeredmask = Temperature_reader->get_status_changes();
 
         // If the status is "Data Available"
         if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
@@ -220,9 +219,9 @@ int main(int argc, char *argv[])
     // Parse arguments and handle control-C
     ApplicationArguments arguments;
     parse_arguments(arguments, argc, argv);
-    if (arguments.parse_result == EXIT) {
+    if (arguments.parse_result == PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ERROR) {
+    } else if (arguments.parse_result == PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
