@@ -47,15 +47,15 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create a Topic named
-    // "Chocolate Temperature" with type Temperature
-    dds::topic::Topic<Temperature> topic(participant, "Chocolate Temperature");
+    // "ChocolateTemperature" with type Temperature
+    dds::topic::Topic<Temperature> topic(participant, "ChocolateTemperature");
 
     // A Subscriber allows an application to create one or more DataReaders
     // Subscriber QoS is configured in USER_QOS_PROFILES.xml
     dds::sub::Subscriber subscriber(participant);
 
     // This DataReader reads data of type Temperature on Topic
-    // "Chocolate Temperature". DataReader QoS is configured in
+    // "ChocolateTemperature". DataReader QoS is configured in
     // USER_QOS_PROFILES.xml
     dds::sub::DataReader<Temperature> reader(subscriber, topic);
 

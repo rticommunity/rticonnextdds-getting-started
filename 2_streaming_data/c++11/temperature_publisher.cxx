@@ -33,14 +33,14 @@ void run_example(
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create a Topic named
-    // "Chocolate Temperature" with type Temperature
-    dds::topic::Topic<Temperature> topic(participant, "Chocolate Temperature");
+    // "ChocolateTemperature" with type Temperature
+    dds::topic::Topic<Temperature> topic(participant, "ChocolateTemperature");
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::Publisher publisher(participant);
 
-    // This DataWriter writes data on Topic "Chocolate Temperature"
+    // This DataWriter writes data on Topic "ChocolateTemperature"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::DataWriter<Temperature> writer(publisher, topic);
 
