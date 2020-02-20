@@ -65,9 +65,9 @@ int run_example(
     }
 
     // A Topic has a name and a datatype. Create a Topic called
-    // "Chocolate Temperature" with your registered data type
+    // "ChocolateTemperature" with your registered data type
     DDSTopic *topic = participant->create_topic(
-            "Chocolate Temperature",
+            "ChocolateTemperature",
             type_name,
             DDS_TOPIC_QOS_DEFAULT,
             NULL /* listener */,
@@ -76,7 +76,7 @@ int run_example(
         return shutdown(participant, "create_topic error", EXIT_FAILURE);
     }
 
-    // This DataWriter writes data on Topic "Chocolate Temperature"
+    // This DataWriter writes data on Topic "ChocolateTemperature"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
     DDSDataWriter *writer = publisher->create_datawriter(
             topic,

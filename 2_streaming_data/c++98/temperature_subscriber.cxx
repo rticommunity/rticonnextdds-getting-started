@@ -90,9 +90,9 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     }
 
     // A Topic has a name and a datatype. Create a Topic called
-    // "Chocolate Temperature" with your registered data type
+    // "ChocolateTemperature" with your registered data type
     DDSTopic *topic = participant->create_topic(
-            "Chocolate Temperature",
+            "ChocolateTemperature",
             type_name,
             DDS_TOPIC_QOS_DEFAULT,
             NULL /* listener */,
@@ -102,7 +102,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     }
 
     // This DataReader reads data of type Temperature on Topic
-    // "Chocolate Temperature". DataReader QoS is configured in
+    // "ChocolateTemperature". DataReader QoS is configured in
     // USER_QOS_PROFILES.xml
     DDSDataReader *reader = subscriber->create_datareader(
             topic,
