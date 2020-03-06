@@ -52,7 +52,7 @@ void run_example(
         sample.sensor_id(sensor_id);
         sample.degrees(rand() % 3 + 30);  // Random number between 30 and 32
 
-        std::cout << "Writing Chocolate Temperature, count " << count
+        std::cout << "Writing ChocolateTemperature, count " << count
                   << std::endl;
 
         writer.write(sample);
