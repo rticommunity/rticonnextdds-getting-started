@@ -57,6 +57,7 @@ void run_example(
 
         writer.write(sample);
 
+        // Exercise: Change this to sleep 10 ms in between writing temperatures
         rti::util::sleep(dds::core::Duration(4));
     }
 }
