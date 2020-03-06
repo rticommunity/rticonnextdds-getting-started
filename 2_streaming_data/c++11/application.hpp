@@ -58,7 +58,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     unsigned int domain_id = 0;
     unsigned int sample_count = 0;  // Infinite
     std::string sensor_id;
-    rti::config::Verbosity verbosity;
+    rti::config::Verbosity verbosity(rti::config::Verbosity::EXCEPTION);
 
     while (arg_processing < argc) {
         if (strcmp(argv[arg_processing], "-d") == 0

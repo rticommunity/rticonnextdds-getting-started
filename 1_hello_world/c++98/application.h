@@ -51,6 +51,9 @@ inline void parse_arguments(
 {
     int arg_processing = 1;
     bool show_usage = false;
+    arguments.domain_id = 0;
+    arguments.sample_count = 0;  // Infinite
+    arguments.verbosity = NDDS_CONFIG_LOG_VERBOSITY_ERROR;
     arguments.parse_result = PARSE_RETURN_OK;
 
     while (arg_processing < argc) {
