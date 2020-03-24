@@ -75,7 +75,7 @@ public class HelloMessagePublisher extends Application {
             // DataWriters. Publisher QoS is configured in USER_QOS_PROFILES.xml
             Publisher publisher = participant.create_publisher(
                     DomainParticipant.PUBLISHER_QOS_DEFAULT,
-                    null /* listener */,
+                    null,  // listener
                     StatusKind.STATUS_MASK_NONE);
             if (publisher == null) {
                 throw new RETCODE_ERROR("create_publisher error");
@@ -91,7 +91,7 @@ public class HelloMessagePublisher extends Application {
                     "Example HelloMessage",
                     typeName,
                     DomainParticipant.TOPIC_QOS_DEFAULT,
-                    null /* listener */,
+                    null,  // listener
                     StatusKind.STATUS_MASK_NONE);
             if (topic == null) {
                 throw new RETCODE_ERROR("create_topic error");                
@@ -103,7 +103,7 @@ public class HelloMessagePublisher extends Application {
                     (HelloMessageDataWriter)publisher.create_datawriter(
                             topic,
                             Publisher.DATAWRITER_QOS_DEFAULT,
-                            null /* listener */,
+                            null,  // listener
                             StatusKind.STATUS_MASK_NONE);
             if (writer == null) {
                 throw new RETCODE_ERROR("create_datawriter error");
