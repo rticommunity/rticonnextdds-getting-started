@@ -80,7 +80,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     while (running && (samples_read < sample_count || sample_count == 0)) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
-        std::cout << "Chocolate Temperature subscriber sleeping for 4 sec..."
+        std::cout << "ChocolateTemperature subscriber sleeping for 4 sec..."
                   << std::endl;
 
         waitset.dispatch(dds::core::Duration(4));  // Wait up to 4s each time
