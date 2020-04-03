@@ -55,12 +55,6 @@ void run_example(int domain_id, int sample_count)
     }
 }
 
-// Sets Connext verbosity to help debugging
-void set_verbosity(rti::config::Verbosity verbosity)
-{
-    rti::config::Logger::instance().verbosity(verbosity);
-}
-
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
@@ -72,14 +66,14 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
         run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
-        std::cerr << "Exception in publisher_main(): " << ex.what()
+        std::cerr << "Exception in run_example(): " << ex.what()
                   << std::endl;
         return EXIT_FAILURE;
     }

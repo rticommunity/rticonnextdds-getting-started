@@ -25,14 +25,13 @@
 using namespace application;
 
 void publish_start_lot(
-        dds::pub::DataWriter<ChocolateLotState>& writer, 
-        unsigned int& sample_count) 
+        dds::pub::DataWriter<ChocolateLotState>& writer,
+        unsigned int& lots_to_process)
 {
-    // Create data sample for writing
     ChocolateLotState sample;
-    for (int count = 0; running && (count < sample_count || sample_count == 0);
-         count++) {
-        // Modify the data to be written here
+    for (int count = 0; running && count < lots_to_process; count++) {
+        // Set the values for a chocolate lot that is going to be sent to wait
+        // at the tempering station
         sample.lot_id(count % 100);
         sample.lot_status(LotStatusKind::WAITING);
         sample.next_station(StationKind::TEMPERING_CONTROLLER);
@@ -41,6 +40,7 @@ void publish_start_lot(
                   << " and next_station: " << sample.next_station()
                   << std::endl;
 
+        // Send an update to station that there is a lot waiting for tempering
         writer.write(sample);
 
         rti::util::sleep(dds::core::Duration(8));
@@ -54,13 +54,13 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
     unsigned int samples_read = 0;
     dds::sub::LoanedSamples<ChocolateLotState> samples = reader.take();
 
-    // Send an update to station that there are lots waiting for tempering
+    // Receive updates from stations about the state of current lots
     for (const auto& sample : samples) {
         if (sample.info().valid()) {
             std::cout << sample.data() << std::endl;
             samples_read++;
         }
-        // Exercise #1: Detect that a lot is complete by checking for 
+        // Exercise #1: Detect that a lot is complete by checking for
         // the disposed state.
     }
 
@@ -70,7 +70,7 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
 
 void run_example(
         unsigned int domain_id,
-        unsigned int sample_count,
+        unsigned int lots_to_process,
         const std::string& sensor_id)
 {
     // A DomainParticipant allows an application to begin communicating in
@@ -110,9 +110,9 @@ void run_example(
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
-    unsigned int samples_read = 0;
-    status_condition.extensions().handler([&reader, &samples_read]() {
-        samples_read += monitor_lot_state(reader);
+    unsigned int lots_processed = 0;
+    status_condition.extensions().handler([&reader, &lots_processed]() {
+        lots_processed += monitor_lot_state(reader);
     });
 
     // Create a WaitSet and attach the StatusCondition
@@ -122,22 +122,16 @@ void run_example(
     // Create a thread to periodically publish the temperature
     std::thread start_lot_thread(
             publish_start_lot,
-            std::ref(writer), 
-            std::ref(sample_count));
+            std::ref(writer),
+            std::ref(lots_to_process));
 
-    while (running && (samples_read < sample_count || sample_count == 0)) {
+    while (running && lots_processed < lots_to_process) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
-        waitset.dispatch(dds::core::Duration(4));  // Wait up to 4s each time
+        waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s each time
     }
 
     start_lot_thread.join();
-}
-
-// Sets Connext verbosity to help debugging
-void set_verbosity(rti::config::Verbosity verbosity)
-{
-    rti::config::Logger::instance().verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
@@ -151,8 +145,8 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
         run_example(
@@ -161,8 +155,7 @@ int main(int argc, char *argv[])
                 arguments.sensor_id);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
-        std::cerr << "Exception in publisher_main(): " << ex.what()
-                  << std::endl;
+        std::cerr << "Exception in run_example(): " << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
 

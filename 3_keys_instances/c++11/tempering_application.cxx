@@ -42,23 +42,24 @@ void publish_temperature(
 
         writer.write(temperature);
 
-        rti::util::sleep(dds::core::Duration(0, 100000000));
+        rti::util::sleep(dds::core::Duration::from_millisecs(100));
     }
 }
 
 void process_lot(
-        dds::sub::DataReader<ChocolateLotState>& reader,
+        dds::sub::DataReader<ChocolateLotState>& lot_state_reader,
         dds::pub::DataWriter<ChocolateLotState>& lot_state_writer)
 {
     // Take all samples.  Samples are loaned to application, loan is
     // returned when LoanedSamples destructor called.
-    dds::sub::LoanedSamples<ChocolateLotState> samples = reader.take();
+    dds::sub::LoanedSamples<ChocolateLotState> samples =
+            lot_state_reader.take();
 
     // Process lots waiting for tempering
     for (const auto& sample : samples) {
         if (sample.info().valid()
-                && sample.data().next_station() 
-                        == StationKind::TEMPERING_CONTROLLER) {
+            && sample.data().next_station()
+                    == StationKind::TEMPERING_CONTROLLER) {
             std::cout << "Processing lot #" << sample.data().lot_id()
                       << std::endl;
 
@@ -69,16 +70,10 @@ void process_lot(
             updated_state.station(StationKind::TEMPERING_CONTROLLER);
             lot_state_writer.write(updated_state);
 
-            // "Processing" the lot. 
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            // "Processing" the lot.
+            rti::util::sleep(dds::core::Duration(5));
 
-            // Send an update that the tempering station is done with lot
-            updated_state.lot_status(LotStatusKind::COMPLETED);
-            updated_state.next_station(StationKind::INVALID_CONTROLLER);
-            updated_state.station(StationKind::INVALID_CONTROLLER);
-            lot_state_writer.write(updated_state);
-
-            // Exercise #1: Since this is the last step in processing, 
+            // Exercise #1: Since this is the last step in processing,
             // notify the monitoring application that the lot is complete
             // using a dispose
         }
@@ -92,7 +87,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
     dds::domain::DomainParticipant participant(domain_id);
 
-    // A Topic has a name and a datatype. Create Topics 
+    // A Topic has a name and a datatype. Create Topics.
     dds::topic::Topic<Temperature> temperature_topic(
             participant,
             "ChocolateTemperature");
@@ -119,10 +114,12 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     // Create DataReader of Topic "ChocolateLotState".
     // DataReader QoS is configured in USER_QOS_PROFILES.xml
-    dds::sub::DataReader<ChocolateLotState> reader(subscriber, lot_state_topic);
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
+            subscriber,
+            lot_state_topic);
 
     // Obtain the DataReader's Status Condition
-    dds::core::cond::StatusCondition status_condition(reader);
+    dds::core::cond::StatusCondition status_condition(lot_state_reader);
 
     // Enable the 'data available' status.
     status_condition.enabled_statuses(
@@ -130,8 +127,9 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
-    status_condition.extensions().handler([&reader, &lot_state_writer]() {
-        process_lot(reader, lot_state_writer);
+    status_condition.extensions().handler(
+            [&lot_state_reader, &lot_state_writer]() {
+                    process_lot(lot_state_reader, lot_state_writer);
     });
 
     // Create a WaitSet and attach the StatusCondition
@@ -141,22 +139,16 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     // Create a thread to periodically publish the temperature
     std::thread temperature_thread(
             publish_temperature,
-            std::ref(temperature_writer), 
+            std::ref(temperature_writer),
             std::ref(sensor_id));
 
     while (running) {
         // Wait for ChocolateLotState
-        std::cout << "waiting for lot" << std::endl; 
+        std::cout << "waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
     }
 
     temperature_thread.join();
-}
-
-// Sets Connext verbosity to help debugging
-void set_verbosity(rti::config::Verbosity verbosity)
-{
-    rti::config::Logger::instance().verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
@@ -170,15 +162,14 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
         run_example(arguments.domain_id, arguments.sensor_id);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
-        std::cerr << "Exception in publisher_main(): " << ex.what()
-                  << std::endl;
+        std::cerr << "Exception in run_example(): " << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
 

@@ -162,13 +162,6 @@ static int shutdown(
     return status;
 }
 
-// Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity)
-{
-    NDDSConfigLogger::get_instance()->set_verbosity(
-            static_cast<NDDS_Config_LogVerbosity>(verbosity));
-}
-
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
@@ -181,8 +174,8 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    NDDSConfigLogger::get_instance()->set_verbosity(arguments.verbosity);
 
     int status = run_example(arguments.domain_id, arguments.sample_count);
 
