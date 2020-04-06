@@ -17,7 +17,7 @@ struct Temperature {
     string<256> sensor_id;
 
     // Degrees in Fahrenheit
-    long degrees;
+    int32 degrees;
 };
 
 // Kind of station processing the chocolate
