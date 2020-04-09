@@ -23,11 +23,11 @@
 namespace application {
 
 // Catch control-C and tell application to shut down
-bool running = true;
+bool shutdown_requested = false;
 
 inline void stop_handler(int)
 {
-    running = false;
+    shutdown_requested = true;
     std::cout << "preparing to shut down..." << std::endl;
 }
 
@@ -58,7 +58,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     bool show_usage = false;
     ParseReturn parse_result = ParseReturn::PARSE_RETURN_OK;
     unsigned int domain_id = 0;
-    unsigned int sample_count = INT_MAX;
+    unsigned int sample_count = std::numeric_limits<unsigned int>::max();
     std::string sensor_id;
     rti::config::Verbosity verbosity;
 

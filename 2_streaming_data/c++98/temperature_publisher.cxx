@@ -106,15 +106,15 @@ int run_example(
 
     // Main loop, write data
     // ---------------------
-    for (unsigned int count = 0;
-         running && ((sample_count == 0) || (count < sample_count));
-         ++count) {
+    for (unsigned int samples_written = 0;
+         !shutdown_requested && samples_written < sample_count;
+         ++samples_written) {
         // Modify the data to be written here
         snprintf(sample->sensor_id, 255, "%s", sensor_id);
         sample->degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
 
-        std::cout << "Writing Chocolate Temperature, count " << count
+        std::cout << "Writing Chocolate Temperature, count " << samples_written
                   << std::endl;
         retcode = Temperature_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {

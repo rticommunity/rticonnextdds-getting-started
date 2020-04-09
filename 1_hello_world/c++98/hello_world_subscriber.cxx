@@ -146,7 +146,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     // Main loop. Wait for data to arrive, and process when it arrives.
     // ----------------------------------------------------------------
     unsigned int samples_read = 0;
-    while (running && (samples_read < sample_count || sample_count == 0)) {
+    while (!shutdown_requested && samples_read < sample_count) {
         DDSConditionSeq active_conditions_seq;
 
         // wait() blocks execution of the thread until one or more attached

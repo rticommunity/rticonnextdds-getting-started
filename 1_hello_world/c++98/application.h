@@ -19,11 +19,11 @@
 namespace application {
 
 // Catch control-C and tell application to shut down
-bool running = true;
+bool shutdown_requested = false;
 
 inline void stop_handler(int)
 {
-    running = false;
+    shutdown_requested = true;
     std::cout << "preparing to shut down..." << std::endl;
 }
 
@@ -52,7 +52,7 @@ inline void parse_arguments(
     int arg_processing = 1;
     bool show_usage = false;
     arguments.domain_id = 0;
-    arguments.sample_count = 0;  // Infinite
+    arguments.sample_count = INT_MAX;
     arguments.verbosity = NDDS_CONFIG_LOG_VERBOSITY_ERROR;
     arguments.parse_result = PARSE_RETURN_OK;
 

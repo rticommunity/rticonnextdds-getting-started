@@ -29,7 +29,9 @@ void publish_start_lot(
         unsigned int& lots_to_process)
 {
     ChocolateLotState sample;
-    for (int count = 0; running && count < lots_to_process; count++) {
+    for (int count = 0;
+         !shutdown_requested && count < lots_to_process;
+         count++) {
         // Set the values for a chocolate lot that is going to be sent to wait
         // at the tempering station
         sample.lot_id(count % 100);
@@ -78,11 +80,11 @@ void run_example(
     // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
     dds::domain::DomainParticipant participant(domain_id);
 
-    // A Topic has a name and a datatype. Create a Topic named
-    // "ChocolateLotState" with type ChocolateLotState
+    // A Topic has a name and a datatype. Create a Topic with type
+    // ChocolateLotState.  Topic name is a constant defined in the IDL file.
     dds::topic::Topic<ChocolateLotState> topic(
             participant,
-            "ChocolateLotState");
+            CHOCOLATE_LOT_STATE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -125,7 +127,7 @@ void run_example(
             std::ref(writer),
             std::ref(lots_to_process));
 
-    while (running && lots_processed < lots_to_process) {
+    while (!shutdown_requested && lots_processed < lots_to_process) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s each time

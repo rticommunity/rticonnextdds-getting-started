@@ -46,8 +46,7 @@ void run_example(
 
     // Create data sample for writing
     Temperature sample;
-    for (int count = 0; running && (count < sample_count || sample_count == 0);
-         count++) {
+    for (int count = 0; !shutdown_requested && count < sample_count; count++) {
         // Modify the data to be written here
         sample.sensor_id(sensor_id);
         sample.degrees(rand() % 3 + 30);  // Random number between 30 and 32

@@ -22,7 +22,7 @@
 
 using namespace application;
 
-void run_example(int domain_id, int sample_count)
+void run_example(unsigned int domain_id, unsigned int sample_count)
 {
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
@@ -43,8 +43,7 @@ void run_example(int domain_id, int sample_count)
 
     // Create data sample for writing
     HelloMessage sample;
-    for (int count = 0; running && (count < sample_count || sample_count == 0);
-         count++) {
+    for (int count = 0; !shutdown_requested && count < sample_count; count++) {
         // Modify the data to be written here
 
         std::cout << "Writing HelloMessage, count " << count << std::endl;

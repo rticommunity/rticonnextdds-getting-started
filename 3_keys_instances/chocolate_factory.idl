@@ -10,11 +10,16 @@
  * to use the software.
  */
 
+const string CHOCOLATE_LOT_STATE_TOPIC = "ChocolateLotState";
+const string CHOCOLATE_TEMPERATURE_TOPIC = "ChocolateTemperature";
+
+const uint32 MAX_STRING_LEN = 256;
+
 // Temperature data type used by tempering machine
 struct Temperature {
     // ID of the sensor sending the temperature
     @key
-    string<256> sensor_id;
+    string<MAX_STRING_LEN> sensor_id;
 
     // Degrees in Fahrenheit
     int32 degrees;

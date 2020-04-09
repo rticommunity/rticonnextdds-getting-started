@@ -37,7 +37,7 @@ unsigned int process_data(dds::sub::DataReader<Temperature>& reader)
     }
 
     return samples_read;
-}  // The LoanedSamples destructor returns the loan
+}
 
 void run_example(unsigned int domain_id, unsigned int sample_count)
 {
@@ -77,7 +77,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     dds::core::cond::WaitSet waitset;
     waitset += status_condition;
 
-    while (running && (samples_read < sample_count || sample_count == 0)) {
+    while (!shutdown_requested && samples_read < sample_count) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
         std::cout << "Chocolate Temperature subscriber sleeping for 4 sec..."

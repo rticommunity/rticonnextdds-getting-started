@@ -104,7 +104,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     // Main loop, write data
     // ---------------------
     for (unsigned int count = 0;
-         running && ((sample_count == 0) || (count < sample_count));
+         !shutdown_requested && count < sample_count;
          ++count) {
         // Modify the data to be written here
 

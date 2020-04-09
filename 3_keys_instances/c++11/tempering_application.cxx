@@ -35,7 +35,7 @@ void publish_temperature(
 {
     // Create temperature sample for writing
     Temperature temperature;
-    while (running) {
+    while (!shutdown_requested) {
         // Modify the data to be written here
         temperature.sensor_id(sensor_id);
         temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
@@ -88,12 +88,13 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create Topics.
+    // Topic names are constants defined in the IDL file.
     dds::topic::Topic<Temperature> temperature_topic(
             participant,
-            "ChocolateTemperature");
+            CHOCOLATE_TEMPERATURE_TOPIC);
     dds::topic::Topic<ChocolateLotState> lot_state_topic(
             participant,
-            "ChocolateLotState");
+            CHOCOLATE_LOT_STATE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -142,7 +143,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             std::ref(temperature_writer),
             std::ref(sensor_id));
 
-    while (running) {
+    while (!shutdown_requested) {
         // Wait for ChocolateLotState
         std::cout << "waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
