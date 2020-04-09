@@ -114,14 +114,14 @@ int run_example(
         sample->degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
 
-        std::cout << "Writing Chocolate Temperature, count " << samples_written
+        std::cout << "Writing ChocolateTemperature, count " << samples_written
                   << std::endl;
         retcode = Temperature_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "write error " << retcode << std::endl;
         }
 
-        // Send every 4 seconds
+        // Exercise: Change this to sleep 10 ms in between writing temperatures
         DDS_Duration_t send_period = { 4, 0 };
         NDDSUtility::sleep(send_period);
     }
