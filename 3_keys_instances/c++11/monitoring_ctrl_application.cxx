@@ -61,14 +61,14 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
         if (sample.info().valid()) {
             std::cout << sample.data() << std::endl;
             samples_read++;
+        } else {
+            // Exercise #1: Detect that a lot is complete by checking for
+            // the disposed state.
         }
-        // Exercise #1: Detect that a lot is complete by checking for
-        // the disposed state.
     }
 
     return samples_read;
-}  // The LoanedSamples destructor returns the loan
-
+}
 
 void run_example(
         unsigned int domain_id,
