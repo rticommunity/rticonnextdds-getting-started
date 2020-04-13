@@ -38,7 +38,7 @@ void publish_start_lot(
         sample.lot_status(LotStatusKind::WAITING);
         sample.next_station(StationKind::TEMPERING_CONTROLLER);
 
-        std::cout << "Start lot with ID " << sample.lot_id()
+        std::cout << std::endl << "Start lot with ID " << sample.lot_id()
                   << " and next_station: " << sample.next_station()
                   << std::endl;
 
@@ -85,6 +85,7 @@ void run_example(
     dds::topic::Topic<ChocolateLotState> topic(
             participant,
             CHOCOLATE_LOT_STATE_TOPIC);
+    // Exercise 2: Add a Topic for Temperature to this application
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
