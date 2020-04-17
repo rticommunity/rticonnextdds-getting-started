@@ -29,7 +29,7 @@ void publish_start_lot(
         unsigned int& lots_to_process)
 {
     ChocolateLotState sample;
-    for (int count = 0;
+    for (unsigned int count = 0;
          !shutdown_requested && count < lots_to_process;
          count++) {
         // Set the values for a chocolate lot that is going to be sent to wait
