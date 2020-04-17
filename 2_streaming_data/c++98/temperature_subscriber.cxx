@@ -146,7 +146,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     // Main loop. Wait for data to arrive, and process when it arrives.
     // ----------------------------------------------------------------
     unsigned int samples_read = 0;
-    while (running && (samples_read < sample_count || sample_count == 0)) {
+    while (!shutdown_requested && samples_read < sample_count) {
         DDSConditionSeq active_conditions_seq;
 
         // wait() blocks execution of the thread until one or more attached
@@ -208,12 +208,6 @@ static int shutdown(
     return status;
 }
 
-// Sets Connext verbosity to help debugging
-void set_verbosity(NDDS_Config_LogVerbosity verbosity)
-{
-    NDDSConfigLogger::get_instance()->set_verbosity(verbosity);
-}
-
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
@@ -226,8 +220,8 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    NDDSConfigLogger::get_instance()->set_verbosity(arguments.verbosity);
 
     int status = run_example(arguments.domain_id, arguments.sample_count);
 

@@ -15,6 +15,8 @@
 
 #include <iostream>
 #include <csignal>
+#include <string>
+
 #include <dds/core/ddscore.hpp>
 
 

@@ -22,7 +22,7 @@
 
 using namespace application;
 
-void run_example(int domain_id, int sample_count)
+void run_example(unsigned int domain_id, unsigned int sample_count)
 {
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
@@ -43,8 +43,7 @@ void run_example(int domain_id, int sample_count)
 
     // Create data sample for writing
     HelloMessage sample;
-    for (int count = 0; running && (count < sample_count || sample_count == 0);
-         count++) {
+    for (int count = 0; !shutdown_requested && count < sample_count; count++) {
         // Modify the data to be written here
 
         std::cout << "Writing HelloMessage, count " << count << std::endl;
@@ -53,12 +52,6 @@ void run_example(int domain_id, int sample_count)
 
         rti::util::sleep(dds::core::Duration(4));
     }
-}
-
-// Sets Connext verbosity to help debugging
-void set_verbosity(rti::config::Verbosity verbosity)
-{
-    rti::config::Logger::instance().verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
@@ -72,14 +65,14 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
         run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
-        std::cerr << "Exception in publisher_main(): " << ex.what()
+        std::cerr << "Exception in run_example(): " << ex.what()
                   << std::endl;
         return EXIT_FAILURE;
     }

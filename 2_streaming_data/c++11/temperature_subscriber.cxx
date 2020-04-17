@@ -37,7 +37,7 @@ unsigned int process_data(dds::sub::DataReader<Temperature>& reader)
     }
 
     return samples_read;
-}  // The LoanedSamples destructor returns the loan
+}
 
 void run_example(unsigned int domain_id, unsigned int sample_count)
 {
@@ -77,7 +77,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     dds::core::cond::WaitSet waitset;
     waitset += status_condition;
 
-    while (running && (samples_read < sample_count || sample_count == 0)) {
+    while (!shutdown_requested && samples_read < sample_count) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
         std::cout << "ChocolateTemperature subscriber sleeping for 4 sec..."
@@ -85,12 +85,6 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
 
         waitset.dispatch(dds::core::Duration(4));  // Wait up to 4s each time
     }
-}
-
-// Sets Connext verbosity to help debugging
-void set_verbosity(rti::config::Verbosity verbosity)
-{
-    rti::config::Logger::instance().verbosity(verbosity);
 }
 
 int main(int argc, char *argv[])
@@ -104,14 +98,14 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
         run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // All DDS exceptions inherit from std::exception
-        std::cerr << "Exception in subscriber_main(): " << ex.what()
+        std::cerr << "Exception in run_example(): " << ex.what()
                   << std::endl;
         return EXIT_FAILURE;
     }

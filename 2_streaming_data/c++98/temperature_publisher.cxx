@@ -106,15 +106,15 @@ int run_example(
 
     // Main loop, write data
     // ---------------------
-    for (unsigned int count = 0;
-         running && ((sample_count == 0) || (count < sample_count));
-         ++count) {
+    for (unsigned int samples_written = 0;
+         !shutdown_requested && samples_written < sample_count;
+         ++samples_written) {
         // Modify the data to be written here
         snprintf(sample->sensor_id, 255, "%s", sensor_id);
         sample->degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
 
-        std::cout << "Writing ChocolateTemperature, count " << count
+        std::cout << "Writing ChocolateTemperature, count " << samples_written
                   << std::endl;
         retcode = Temperature_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
@@ -169,13 +169,6 @@ static int shutdown(
     return status;
 }
 
-// Sets Connext verbosity to help debugging
-void set_verbosity(unsigned int verbosity)
-{
-    NDDSConfigLogger::get_instance()->set_verbosity(
-            static_cast<NDDS_Config_LogVerbosity>(verbosity));
-}
-
 int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
@@ -188,8 +181,8 @@ int main(int argc, char *argv[])
     }
     setup_signal_handlers();
 
-    // Enables different levels of debugging output
-    set_verbosity(arguments.verbosity);
+    // Sets Connext verbosity to help debugging
+    NDDSConfigLogger::get_instance()->set_verbosity(arguments.verbosity);
 
     int status = run_example(
             arguments.domain_id,

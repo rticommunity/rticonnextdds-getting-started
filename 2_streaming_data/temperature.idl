@@ -16,6 +16,6 @@ struct Temperature {
     string<256> sensor_id;
 
     // Degrees in Celsius
-    long degrees;
+    int32 degrees;
 };
 
