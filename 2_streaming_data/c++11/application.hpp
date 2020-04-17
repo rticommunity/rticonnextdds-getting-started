@@ -56,7 +56,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     bool show_usage = false;
     ParseReturn parse_result = ParseReturn::PARSE_RETURN_OK;
     unsigned int domain_id = 0;
-    unsigned int sample_count = std::numeric_limits<unsigned int>::max();
+    unsigned int sample_count = (std::numeric_limits<unsigned int>::max)();
     std::string sensor_id;
     rti::config::Verbosity verbosity;
 

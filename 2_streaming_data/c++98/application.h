@@ -53,7 +53,7 @@ inline void parse_arguments(
     int arg_processing = 1;
     bool show_usage = false;
     arguments.domain_id = 0;
-    arguments.sample_count = std::numeric_limits<unsigned int>::max();
+    arguments.sample_count = (std::numeric_limits<unsigned int>::max)();
     arguments.verbosity = NDDS_CONFIG_LOG_VERBOSITY_ERROR;
     arguments.parse_result = PARSE_RETURN_OK;
 
