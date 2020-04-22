@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <csignal>
+#include <limits>
 
 namespace application {
 
