@@ -30,23 +30,23 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create a Topic named
-    // "Example HelloMessage" with type HelloMessage
-    dds::topic::Topic<HelloMessage> topic(participant, "Example HelloMessage");
+    // "HelloWorld Topic" with type HelloWorld
+    dds::topic::Topic<HelloWorld> topic(participant, "Example HelloWorld");
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::Publisher publisher(participant);
 
-    // This DataWriter writes data on Topic "Example HelloMessage"
+    // This DataWriter will write data on Topic "HelloWorld Topic"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    dds::pub::DataWriter<HelloMessage> writer(publisher, topic);
+    dds::pub::DataWriter<HelloWorld> writer(publisher, topic);
 
     // Create data sample for writing
-    HelloMessage sample;
+    HelloWorld sample;
     for (int count = 0; !shutdown_requested && count < sample_count; count++) {
         // Modify the data to be written here
 
-        std::cout << "Writing HelloMessage, count " << count << std::endl;
+        std::cout << "Writing HelloWorld, count " << count << std::endl;
 
         writer.write(sample);
 

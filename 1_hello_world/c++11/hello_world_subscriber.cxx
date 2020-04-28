@@ -23,12 +23,12 @@
 
 using namespace application;
 
-unsigned int process_data(dds::sub::DataReader<HelloMessage>& reader)
+unsigned int process_data(dds::sub::DataReader<HelloWorld>& reader)
 {
     // Take all samples.  Samples are loaned to application, loan is
     // returned when LoanedSamples destructor called.
     unsigned int samples_read = 0;
-    dds::sub::LoanedSamples<HelloMessage> samples = reader.take();
+    dds::sub::LoanedSamples<HelloWorld> samples = reader.take();
     for (const auto& sample : samples) {
         if (sample.info().valid()) {
             samples_read++;
@@ -47,17 +47,17 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create a Topic named
-    // "Example HelloMessage" with type HelloMessage
-    dds::topic::Topic<HelloMessage> topic(participant, "Example HelloMessage");
+    // "HelloWorld Topic" with type HelloWorld
+    dds::topic::Topic<HelloWorld> topic(participant, "Example HelloWorld");
 
     // A Subscriber allows an application to create one or more DataReaders
     // Subscriber QoS is configured in USER_QOS_PROFILES.xml
     dds::sub::Subscriber subscriber(participant);
 
-    // This DataReader reads data of type HelloMessage on Topic
-    // "Example HelloMessage". DataReader QoS is configured in
+    // This DataReader will read data of type HelloWorld on Topic
+    // "HelloWorld Topic". DataReader QoS is configured in
     // USER_QOS_PROFILES.xml
-    dds::sub::DataReader<HelloMessage> reader(subscriber, topic);
+    dds::sub::DataReader<HelloWorld> reader(subscriber, topic);
 
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition status_condition(reader);
@@ -80,7 +80,7 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
     while (!shutdown_requested && samples_read < sample_count) {
         // Dispatch will call the handlers associated to the WaitSet conditions
         // when they activate
-        std::cout << "HelloMessage subscriber sleeping for 4 sec..."
+        std::cout << "HelloWorld subscriber sleeping for 4 sec..."
                   << std::endl;
 
         waitset.dispatch(dds::core::Duration(4));  // Wait up to 4s each time

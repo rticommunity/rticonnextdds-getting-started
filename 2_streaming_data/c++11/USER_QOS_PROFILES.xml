@@ -41,7 +41,7 @@
             These QoS profiles will be used as the default, as long as this
             file is in the working directory when running the example.
         -->
-        <qos_profile name="TemperingTemperatureProfile"
+        <qos_profile name="ChocolateTemperatureProfile"
                      base_name="BuiltinQosLib::Generic.StrictReliable"
                      is_default_qos="true">
 
