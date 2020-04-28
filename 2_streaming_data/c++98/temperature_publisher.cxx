@@ -121,7 +121,7 @@ int run_example(
             std::cerr << "write error " << retcode << std::endl;
         }
 
-        // Exercise: Change this to sleep 10 ms in between writing temperatures
+        // Exercise: Change this to sleep 100 ms in between writing temperatures
         DDS_Duration_t send_period = { 4, 0 };
         NDDSUtility::sleep(send_period);
     }
