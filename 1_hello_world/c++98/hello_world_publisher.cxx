@@ -54,17 +54,17 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     }
 
     // Register the datatype to use when creating the Topic
-    const char *type_name = HelloMessageTypeSupport::get_type_name();
+    const char *type_name = HelloWorldTypeSupport::get_type_name();
     DDS_ReturnCode_t retcode =
-            HelloMessageTypeSupport::register_type(participant, type_name);
+            HelloWorldTypeSupport::register_type(participant, type_name);
     if (retcode != DDS_RETCODE_OK) {
         return shutdown(participant, "register_type error", EXIT_FAILURE);
     }
 
     // A Topic has a name and a datatype. Create a Topic called
-    // "Example HelloMessage" with your registered data type
+    // "HelloWorld Topic" with your registered data type
     DDSTopic *topic = participant->create_topic(
-            "Example HelloMessage",
+            "Example HelloWorld",
             type_name,
             DDS_TOPIC_QOS_DEFAULT,
             NULL /* listener */,
@@ -73,7 +73,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         return shutdown(participant, "create_topic error", EXIT_FAILURE);
     }
 
-    // This DataWriter writes data on Topic "Example HelloMessage"
+    // This DataWriter will write data on Topic "HelloWorld Topic"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
     DDSDataWriter *writer = publisher->create_datawriter(
             topic,
@@ -86,18 +86,18 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
     // A narrow is a cast from a generic DataWriter to one that is specific
     // to your type. Use the type specific DataWriter to write()
-    HelloMessageDataWriter *HelloMessage_writer =
-            HelloMessageDataWriter::narrow(writer);
-    if (HelloMessage_writer == NULL) {
+    HelloWorldDataWriter *HelloWorld_writer =
+            HelloWorldDataWriter::narrow(writer);
+    if (HelloWorld_writer == NULL) {
         return shutdown(participant, "DataWriter narrow error", EXIT_FAILURE);
     }
 
     // Create data sample for writing
-    HelloMessage *sample = HelloMessageTypeSupport::create_data();
+    HelloWorld *sample = HelloWorldTypeSupport::create_data();
     if (sample == NULL) {
         return shutdown(
                 participant,
-                "HelloMessageTypeSupport::create_data error",
+                "HelloWorldTypeSupport::create_data error",
                 EXIT_FAILURE);
     }
 
@@ -108,8 +108,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
          ++count) {
         // Modify the data to be written here
 
-        std::cout << "Writing HelloMessage, count " << count << std::endl;
-        retcode = HelloMessage_writer->write(*sample, DDS_HANDLE_NIL);
+        std::cout << "Writing HelloWorld, count " << count << std::endl;
+        retcode = HelloWorld_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "write error " << retcode << std::endl;
         }
@@ -122,9 +122,9 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     // Cleanup
     // -------
     // Delete data sample
-    retcode = HelloMessageTypeSupport::delete_data(sample);
+    retcode = HelloWorldTypeSupport::delete_data(sample);
     if (retcode != DDS_RETCODE_OK) {
-        std::cerr << "HelloMessageTypeSupport::delete_data error " << retcode
+        std::cerr << "HelloWorldTypeSupport::delete_data error " << retcode
                   << std::endl;
     }
 

@@ -164,7 +164,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         }
 
         // Get the status changes to check which status condition
-        // triggered the the WaitSet to wake
+        // triggered the WaitSet to wake
         DDS_StatusMask triggeredmask = Temperature_reader->get_status_changes();
 
         // If the status is "Data Available"
