@@ -36,6 +36,11 @@ unsigned int process_data(TemperatureDataReader *Temperature_reader)
     // Take available data from DataReader's queue
     DDS_ReturnCode_t retcode = Temperature_reader->take(data_seq, info_seq);
 
+    if (retcode != DDS_RETCODE_OK) {
+        std::cerr << "take error " << retcode << std::endl;
+        return 0;
+    }
+
     // Iterate over all available data
     for (int i = 0; i < data_seq.length(); ++i) {
         // Check if a sample is an instance lifecycle event
