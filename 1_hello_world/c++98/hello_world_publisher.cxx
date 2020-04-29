@@ -86,9 +86,9 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
     // A narrow is a cast from a generic DataWriter to one that is specific
     // to your type. Use the type specific DataWriter to write()
-    HelloWorldDataWriter *HelloWorld_writer =
+    HelloWorldDataWriter *hello_world_writer =
             HelloWorldDataWriter::narrow(writer);
-    if (HelloWorld_writer == NULL) {
+    if (hello_world_writer == NULL) {
         return shutdown(participant, "DataWriter narrow error", EXIT_FAILURE);
     }
 
@@ -109,7 +109,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         // Modify the data to be written here
 
         std::cout << "Writing HelloWorld, count " << count << std::endl;
-        retcode = HelloWorld_writer->write(*sample, DDS_HANDLE_NIL);
+        retcode = hello_world_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "write error " << retcode << std::endl;
         }

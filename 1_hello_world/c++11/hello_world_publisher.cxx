@@ -43,7 +43,9 @@ void run_example(unsigned int domain_id, unsigned int sample_count)
 
     // Create data sample for writing
     HelloWorld sample;
-    for (int count = 0; !shutdown_requested && count < sample_count; count++) {
+    for (unsigned int count = 0;
+         !shutdown_requested && count < sample_count;
+         count++) {
         // Modify the data to be written here
 
         std::cout << "Writing HelloWorld, count " << count << std::endl;

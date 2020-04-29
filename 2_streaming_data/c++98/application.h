@@ -16,6 +16,7 @@
 #include <iostream>
 #include <csignal>
 #include <limits>
+#include "ndds/ndds_cpp.h"
 
 namespace application {
 

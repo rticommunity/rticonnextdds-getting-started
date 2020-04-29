@@ -27,14 +27,14 @@ static int shutdown(
         int status);
 
 // Process data. Returns number of samples processed.
-unsigned int process_data(TemperatureDataReader *Temperature_reader)
+unsigned int process_data(TemperatureDataReader *temperature_reader)
 {
     TemperatureSeq data_seq;
     DDS_SampleInfoSeq info_seq;
     unsigned int samples_read = 0;
 
     // Take available data from DataReader's queue
-    DDS_ReturnCode_t retcode = Temperature_reader->take(data_seq, info_seq);
+    DDS_ReturnCode_t retcode = temperature_reader->take(data_seq, info_seq);
 
     if (retcode != DDS_RETCODE_OK) {
         std::cerr << "take error " << retcode << std::endl;
@@ -54,7 +54,7 @@ unsigned int process_data(TemperatureDataReader *Temperature_reader)
     }
     // Data sequence was loaned from middleware for performance.
     // Return loan when application is finished with data.
-    Temperature_reader->return_loan(data_seq, info_seq);
+    temperature_reader->return_loan(data_seq, info_seq);
     
     return samples_read;
 }
@@ -142,9 +142,9 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
     // A narrow is a cast from a generic DataReader to one that is specific
     // to your type. Use the type specific DataReader to read data
-    TemperatureDataReader *Temperature_reader =
+    TemperatureDataReader *temperature_reader =
             TemperatureDataReader::narrow(reader);
-    if (Temperature_reader == NULL) {
+    if (temperature_reader == NULL) {
         shutdown(participant, "DataReader narrow error", EXIT_FAILURE);
     }
 
@@ -170,11 +170,11 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
         // Get the status changes to check which status condition
         // triggered the WaitSet to wake
-        DDS_StatusMask triggeredmask = Temperature_reader->get_status_changes();
+        DDS_StatusMask triggeredmask = temperature_reader->get_status_changes();
 
         // If the status is "Data Available"
         if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
-            samples_read += process_data(Temperature_reader);
+            samples_read += process_data(temperature_reader);
         }
     }
 
