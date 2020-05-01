@@ -89,9 +89,9 @@ int run_example(
 
     // A narrow is a cast from a generic DataWriter to one that is specific
     // to your type. Use the type specific DataWriter to write()
-    TemperatureDataWriter *Temperature_writer =
+    TemperatureDataWriter *temperature_writer =
             TemperatureDataWriter::narrow(writer);
-    if (Temperature_writer == NULL) {
+    if (temperature_writer == NULL) {
         return shutdown(participant, "DataWriter narrow error", EXIT_FAILURE);
     }
 
@@ -116,7 +116,7 @@ int run_example(
 
         std::cout << "Writing ChocolateTemperature, count " << samples_written
                   << std::endl;
-        retcode = Temperature_writer->write(*sample, DDS_HANDLE_NIL);
+        retcode = temperature_writer->write(*sample, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {
             std::cerr << "write error " << retcode << std::endl;
         }
