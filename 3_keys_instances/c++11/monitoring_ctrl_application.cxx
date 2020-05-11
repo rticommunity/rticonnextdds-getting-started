@@ -38,9 +38,10 @@ void publish_start_lot(
         sample.lot_status(LotStatusKind::WAITING);
         sample.next_station(StationKind::TEMPERING_CONTROLLER);
 
-        std::cout << std::endl << "Start lot with ID " << sample.lot_id()
-                  << " and next_station: " << sample.next_station()
-                  << std::endl;
+        std::cout << std::endl << "Starting lot: " << std::endl;
+        std::cout << "[lot_id: " << sample.lot_id()
+                  << " next_station: " << sample.next_station()
+                  << "]" << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
         writer.write(sample);
@@ -58,19 +59,21 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
 
     // Receive updates from stations about the state of current lots
     for (const auto& sample : samples) {
+        std::cout << "Received Lot Update:" << std::endl;
         if (sample.info().valid()) {
             std::cout << sample.data() << std::endl;
             samples_read++;
         } else {
-            // Exercise #1: Detect that a lot is complete by checking for
+            // Exercise #3.2: Detect that a lot is complete by checking for
             // the disposed state.
+
         }
     }
 
     return samples_read;
 }
 
-// Exercise #2: Add monitor_temperature function
+// Exercise #4.4: Add monitor_temperature function
 
 
 void run_example(
@@ -88,7 +91,7 @@ void run_example(
     dds::topic::Topic<ChocolateLotState> topic(
             participant,
             CHOCOLATE_LOT_STATE_TOPIC);
-    // Exercise #2: Add a Topic for Temperature to this application
+    // Exercise #4.1: Add a Topic for Temperature to this application
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -105,7 +108,7 @@ void run_example(
     // Create DataReader of Topic "ChocolateLotState".
     // DataReader QoS is configured in USER_QOS_PROFILES.xml
     dds::sub::DataReader<ChocolateLotState> reader(subscriber, topic);
-    // Exercise #2: Add a DataReader for Temperature to this application
+    // Exercise #4.2: Add a DataReader for Temperature to this application
 
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition status_condition(reader);
@@ -124,7 +127,7 @@ void run_example(
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
     waitset += status_condition;
-    // Exercise #2: Add the new DataReader's StatusCondition to the Waitset
+    // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
 
     // Create a thread to periodically publish the temperature
     std::thread start_lot_thread(

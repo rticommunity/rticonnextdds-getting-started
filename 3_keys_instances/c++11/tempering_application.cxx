@@ -73,9 +73,10 @@ void process_lot(
             // "Processing" the lot.
             rti::util::sleep(dds::core::Duration(5));
 
-            // Exercise #1: Since this is the last step in processing,
+            // Exercise #3.1: Since this is the last step in processing,
             // notify the monitoring application that the lot is complete
             // using a dispose
+
         }
     }
 }  // The LoanedSamples destructor returns the loan
