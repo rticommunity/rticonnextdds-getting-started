@@ -47,7 +47,7 @@ struct ChocolateLotState {
     // Unique ID of the chocolate lot being produced.
     // rolls over each day.
     @key
-    int32 lot_id;
+    uint32 lot_id;
 
     // Which station is producing the status
     StationKind station;
