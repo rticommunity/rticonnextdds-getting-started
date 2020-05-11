@@ -33,6 +33,9 @@ void publish_temperature(
         dds::pub::DataWriter<Temperature>& writer,
         const std::string& sensor_id)
 {
+    std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
+              << " started" << std::endl;
+
     // Create temperature sample for writing
     Temperature temperature;
     while (!shutdown_requested) {
