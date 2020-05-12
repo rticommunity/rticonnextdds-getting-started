@@ -33,9 +33,6 @@ void publish_temperature(
         dds::pub::DataWriter<Temperature>& writer,
         const std::string& sensor_id)
 {
-    std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
-              << " started" << std::endl;
-
     // Create temperature sample for writing
     Temperature temperature;
     while (!shutdown_requested) {
@@ -142,6 +139,8 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     waitset += status_condition;
 
     // Create a thread to periodically publish the temperature
+    std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id
+              << " starting" << std::endl;
     std::thread temperature_thread(
             publish_temperature,
             std::ref(temperature_writer),
