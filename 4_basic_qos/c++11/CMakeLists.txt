@@ -85,34 +85,34 @@ set_property(
     TARGET monitoring_ctrl_application
     PROPERTY CXX_STANDARD 11)
 
-# Copy the USER_QOS_PROFILES.xml to the location where you will be running
+# Copy the qos_profiles.xml to the location where you will be running
 # so it is in the current working directory
 add_custom_target(copy_qos
     DEPENDS
-        "${CMAKE_CURRENT_BINARY_DIR}/USER_QOS_PROFILES.xml"
+        "${CMAKE_CURRENT_BINARY_DIR}/qos_profiles.xml"
 )
 
 add_custom_command(
     OUTPUT
-        "${CMAKE_CURRENT_BINARY_DIR}/USER_QOS_PROFILES.xml"
+        "${CMAKE_CURRENT_BINARY_DIR}/qos_profiles.xml"
     COMMAND
         ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/USER_QOS_PROFILES.xml"
+            "${CMAKE_CURRENT_SOURCE_DIR}/qos_profiles.xml"
             "${CMAKE_CURRENT_BINARY_DIR}"
-    COMMENT "Copying USER_QOS_PROFILES.xml"
+    COMMENT "Copying qos_profiles.xml"
     DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/USER_QOS_PROFILES.xml"
+        "${CMAKE_CURRENT_SOURCE_DIR}/qos_profiles.xml"
     VERBATIM
 )
 
-# Copy the USER_QOS_PROFILES.XML when the tempering application is built, and
+# Copy the qos_profiles.xml when the tempering application is built, and
 # ensure Codegen is called
 add_dependencies(tempering_application
     copy_qos
     codegen_sources
 )
 
-# Copy the USER_QOS_PROFILES.XML when the monitoring and control application is
+# Copy the qos_profiles.xml when the monitoring and control application is
 # built and ensure Codegen is called
 add_dependencies(monitoring_ctrl_application
     copy_qos
