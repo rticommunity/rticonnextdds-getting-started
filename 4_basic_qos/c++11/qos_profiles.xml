@@ -29,60 +29,7 @@
     -->
     <qos_library name="ChocolateFactoryLibrary">
 
-        <!-- 
-            QoS profile used to configure streaming communication between
-            DataWriters and DataReaders.  Used for temperature data in this
-            example.
-
-            base_name:
-            Communication is streaming because this profile inherits from
-            the built-in profile "BuiltinQosLib::Pattern.Streaming"
-
-            is_default_qos:
-            These QoS profiles will not be used as the default. We will 
-            explicitly configure the QoS.
-        -->
-        <qos_profile name="ChocolateTemperatureProfile"
-                base_name="BuiltinQosLib::Pattern.Streaming">
-
-            <!-- QoS specified to override the QoS in the base profile.
-                 Configures the DataWriter in the example code. -->
-            <datawriter_qos>
-                <publication_name>
-                    <name>ChocolateTemperatureDataWriter</name>
-                </publication_name>
-            </datawriter_qos>
-
-            <!-- QoS specified to override the QoS in the base profile. 
-                 Configures the DataReader in the example code. -->
-            <datareader_qos>
-                <subscription_name>
-                    <name>ChocolateTemperatureDataReader</name>
-                </subscription_name>
-            </datareader_qos>
-        </qos_profile>
-
-        <qos_profile name="ChocolateLotStateProfile"
-                     base_name="BuiltinQosLib::Pattern.Status">
-            <!-- QoS specified to override the QoS in the base profile.
-                 Configures DataWriters of ChocolateLotState. -->
-            <datawriter_qos>
-                <publication_name>
-                    <name>ChocolateLotStateDataWriter</name>
-                </publication_name>
-            </datawriter_qos>
-
-            <!-- QoS specified to override the QoS in the base profile. 
-                 Configures DataReaders of ChocolateLotState. -->
-            <datareader_qos>
-                <subscription_name>
-                    <name>ChocolateLotStateDataReader</name>
-                </subscription_name>
-            </datareader_qos>
-
-        </qos_profile>
-
-        <!-- QoS profile snippet to name an application -->
+        <!-- QoS profile to set the participant name for debugging -->
         <qos_profile name="TemperingApplication"
                      base_name="BuiltinQosLib::Generic.Common">
             <participant_qos>
@@ -92,7 +39,7 @@
             </participant_qos>
         </qos_profile>
 
-        <!-- QoS profile snippet to name an application -->
+        <!-- QoS profile to set the participant name for debugging -->
         <qos_profile name="MonitoringControlApplication"
                      base_name="BuiltinQosLib::Generic.Common">
             <participant_qos>
@@ -100,6 +47,64 @@
                     <name>MonitoringControlParticipant</name>
                 </participant_name>
             </participant_qos>
+        </qos_profile>
+
+        <!-- 
+            QoS profile used to configure streaming communication between
+            DataWriters and DataReaders.  Used for temperature data in this
+            example.
+
+            base_name:
+            Communication is streaming because this profile inherits from
+            the built-in profile "BuiltinQosLib::Pattern.Streaming"
+        -->
+        <qos_profile name="ChocolateTemperatureProfile"
+                base_name="BuiltinQosLib::Pattern.Streaming">
+
+            <!-- QoS specified to override the QoS in the base profile.
+                 Configuration for ChocolateTemperature DataWriters -->
+            <datawriter_qos>
+                <publication_name>
+                    <name>ChocolateTemperatureDataWriter</name>
+                </publication_name>
+            </datawriter_qos>
+
+            <!-- QoS specified to override the QoS in the base profile. 
+                 Configuration for ChocolateTemperature DataReaders -->
+            <datareader_qos>
+                <subscription_name>
+                    <name>ChocolateTemperatureDataReader</name>
+                </subscription_name>
+            </datareader_qos>
+        </qos_profile>
+
+        <!-- 
+            QoS profile used to configure streaming communication between
+            DataWriters and DataReaders.  Used for ChocolateLotState data
+            in this example.
+
+            base_name:
+            Communication follows the state data pattern because this profile
+            inherits from the built-in profile "BuiltinQosLib::Pattern.Status"
+        -->
+        <qos_profile name="ChocolateLotStateProfile"
+                     base_name="BuiltinQosLib::Pattern.Status">
+            <!-- QoS specified to override the QoS in the base profile.
+                 Configuration for ChocolateLotState DataWriters. -->
+            <datawriter_qos>
+                <publication_name>
+                    <name>ChocolateLotStateDataWriter</name>
+                </publication_name>
+            </datawriter_qos>
+
+            <!-- QoS specified to override the QoS in the base profile. 
+                 Configuration for ChocolateLotState DataReaders. -->
+            <datareader_qos>
+                <subscription_name>
+                    <name>ChocolateLotStateDataReader</name>
+                </subscription_name>
+            </datareader_qos>
+
         </qos_profile>
 
     </qos_library>

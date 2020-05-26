@@ -30,7 +30,7 @@ using namespace application;
 // 3) After "processing" the lot, publishes the lot state
 
 void publish_temperature(
-        dds::pub::DataWriter<Temperature>& writer,
+        dds::pub::DataWriter<Temperature>& temperature_writer,
         const std::string& sensor_id)
 {
     // Create temperature sample for writing
@@ -40,7 +40,7 @@ void publish_temperature(
         temperature.sensor_id(sensor_id);
         temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
 
-        writer.write(temperature);
+        temperature_writer.write(temperature);
 
         rti::util::sleep(dds::core::Duration::from_millisecs(100));
     }
@@ -79,17 +79,36 @@ void process_lot(
             dds::core::InstanceHandle instance_handle =
                     lot_state_writer.lookup_instance(updated_state);
             lot_state_writer.dispose_instance(instance_handle);
-
         }
     }
 }  // The LoanedSamples destructor returns the loan
 
+template <typename T>
+void on_offered_incompatible_qos(dds::pub::DataWriter<T>& writer)
+{
+    // Exercise #3.1 add a message to print when this DataWriter discovers an
+    // incompatible DataReader
+}
+
+template <typename T>
+void on_requested_incompatible_qos(dds::sub::DataReader<T>& reader)
+{
+    // Exercise #3.2 add a message to print when this DataReader discovers an
+    // incompatible DataWriter
+}
+
 void run_example(unsigned int domain_id, const std::string& sensor_id)
 {
+    // Loads the QoS from the qos_profiles.xml file. 
+    dds::core::QosProvider qos_provider("./qos_profiles.xml");
+
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
-    dds::domain::DomainParticipant participant(domain_id);
+    // Uses TemperingApplication profile to set participant name.
+    dds::domain::DomainParticipant participant(
+                domain_id,
+                qos_provider.participant_qos(
+                            "ChocolateFactoryLibrary::TemperingApplication"));
 
     // A Topic has a name and a datatype. Create Topics.
     // Topic names are constants defined in the IDL file.
@@ -101,45 +120,81 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             CHOCOLATE_LOT_STATE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
-    // Publisher QoS is configured in USER_QOS_PROFILES.xml
+    // Creat Publisher with default QoS 
     dds::pub::Publisher publisher(participant);
 
-    // Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
-    // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+    // Create DataWriter of Topic "ChocolateTemperature"
+    // using ChocolateTemperatureProfile QoS profile
     dds::pub::DataWriter<Temperature> temperature_writer(
             publisher,
-            temperature_topic);
+            temperature_topic,
+            qos_provider.datawriter_qos(
+                    "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
+
+    // Exercise #3.3: Get the DataWriter's status condition and enable the
+    // offered incompatible QoS status.
+
+    // Create DataWriter of Topic "ChocolateLotState"
+    // using ChocolateLotStateProfile QoS profile
     dds::pub::DataWriter<ChocolateLotState> lot_state_writer(
             publisher,
-            lot_state_topic);
+            lot_state_topic,
+            qos_provider.datawriter_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
-    // A Subscriber allows an application to create one or more DataReaders
-    // Subscriber QoS is configured in USER_QOS_PROFILES.xml
-    dds::sub::Subscriber subscriber(participant);
-
-    // Create DataReader of Topic "ChocolateLotState".
-    // DataReader QoS is configured in USER_QOS_PROFILES.xml
-    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
-            subscriber,
-            lot_state_topic);
-
-    // Obtain the DataReader's Status Condition
-    dds::core::cond::StatusCondition status_condition(lot_state_reader);
-
-    // Enable the 'data available' status.
-    status_condition.enabled_statuses(
-            dds::core::status::StatusMask::data_available());
+    // DataWriters have events, too. Obtain the DataWriter's Status Condition,
+    // and enable the "offered_incompatible_qos" status
+    dds::core::cond::StatusCondition lot_writer_status_condition(
+            lot_state_writer);
+    lot_writer_status_condition.enabled_statuses(
+            dds::core::status::StatusMask::offered_incompatible_qos());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
-    status_condition.extensions().handler(
-            [&lot_state_reader, &lot_state_writer]() {
-                    process_lot(lot_state_reader, lot_state_writer);
+    lot_writer_status_condition.extensions().handler([&lot_state_writer]() {
+                on_offered_incompatible_qos(lot_state_writer);
+    });
+
+    // A Subscriber allows an application to create one or more DataReaders
+    dds::sub::Subscriber subscriber(participant);
+
+    // Create DataReader of Topic "ChocolateLotState".
+    // using ChocolateTemperatureProfile QoS profile
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
+            subscriber,
+            lot_state_topic,
+            qos_provider.datareader_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
+
+    // Obtain the DataReader's Status Condition
+    dds::core::cond::StatusCondition reader_status_condition(lot_state_reader);
+
+    // Enable the 'data available' and 'requested incompatible qos' statuses
+    reader_status_condition.enabled_statuses(
+            dds::core::status::StatusMask::data_available()  
+            | dds::core::status::StatusMask::requested_incompatible_qos());
+
+    // Associate a handler with the status condition. This will run when the
+    // condition is triggered, in the context of the dispatch call (see below)
+    reader_status_condition.extensions().handler([&lot_state_reader,
+                                                  &lot_state_writer]() {
+        if ((lot_state_reader.status_changes() 
+                & dds::core::status::StatusMask::data_available())
+                != dds::core::status::StatusMask::none()) {
+            process_lot(lot_state_reader, lot_state_writer);
+        }
+        if ((lot_state_reader.status_changes()
+                & dds::core::status::StatusMask::requested_incompatible_qos())
+                != dds::core::status::StatusMask::none()) {
+            on_requested_incompatible_qos(lot_state_reader);
+        }
     });
 
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
-    waitset += status_condition;
+    waitset += reader_status_condition;
+    waitset += lot_writer_status_condition;
+    // Exercise #3.4: Add the other status condition to the waitset
 
     // Create a thread to periodically publish the temperature
     std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
