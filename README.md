@@ -10,5 +10,6 @@ The patterns we will be showing  can be described in a nutshell:
 An overview of the individual examples:
 * Publish/Subscribe examples
     * 1_hello_world: First introduction to Connext DDS publish/subscribe
-    * 2_streaming_data: Data types and the streaming data pattern
+    * 2_streaming_data: Data types and the streaming data pattern.  Adding a new DataWriter.
+    * 3_keys_instances: Introduction to keys and instances.  Adding a new DataReader.
 * Request/Reply Pattern
