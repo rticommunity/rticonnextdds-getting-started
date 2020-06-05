@@ -41,7 +41,7 @@
             These QoS profiles will be used as the default, as long as this
             file is in the working directory when running the example.
         -->
-        <qos_profile name="TemperingTemperatureProfile"
+        <qos_profile name="ChocolateFactoryProfile"
                      base_name="BuiltinQosLib::Generic.StrictReliable"
                      is_default_qos="true">
 
@@ -49,7 +49,7 @@
                  Configures the DataWriter in the example code. -->
             <datawriter_qos>
                 <publication_name>
-                    <name>ChocolateTemperatureDataWriter</name>
+                    <name>DataWriter</name>
                 </publication_name>
             </datawriter_qos>
 
@@ -57,7 +57,7 @@
                  Configures the DataReader in the example code. -->
             <datareader_qos>
                 <subscription_name>
-                    <name>ChocolateTemperatureDataReader</name>
+                    <name>DataReader</name>
                 </subscription_name>
             </datareader_qos>
 
@@ -70,7 +70,7 @@
                 application from another when you're debugging.
                 -->
                 <participant_name>
-                    <name>TemperingAppParticipant</name>
+                    <name>ChocolateFactoryAppParticipant</name>
                 </participant_name>
 
             </participant_qos>
