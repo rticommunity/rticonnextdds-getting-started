@@ -27,8 +27,7 @@ static int shutdown(
         int status);
 
 // Structure to hold data for write lot sate thread
-struct StartLotThreadData
-{
+struct StartLotThreadData {
     ChocolateLotStateDataWriter *writer;
     unsigned int lots_to_process;
 };
@@ -39,8 +38,7 @@ void publish_start_lot(StartLotThreadData *thread_data)
     unsigned int lots_to_process = thread_data->lots_to_process;
     ChocolateLotStateDataWriter *writer = thread_data->writer;
 
-    for (unsigned int count = 0;
-         !shutdown_requested && count < lots_to_process;
+    for (unsigned int count = 0; !shutdown_requested && count < lots_to_process;
          count++) {
         // Set the values for a chocolate lot that is going to be sent to wait
         // at the tempering station
@@ -50,8 +48,8 @@ void publish_start_lot(StartLotThreadData *thread_data)
 
         std::cout << std::endl << "Starting lot: " << std::endl;
         std::cout << "[lot_id: " << sample.lot_id
-                  << " next_station: " << sample.next_station
-                  << "]" << std::endl;
+                  << " next_station: " << sample.next_station << "]"
+                  << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
         writer->write(sample, DDS_HANDLE_NIL);
@@ -116,6 +114,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         shutdown(participant, "create_participant error", EXIT_FAILURE);
     }
 
+    // Create Topics
+
     // Register the datatype to use when creating the Topic
     const char *lot_state_type_name =
             ChocolateLotStateTypeSupport::get_type_name();
@@ -137,6 +137,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         shutdown(participant, "create_topic error", EXIT_FAILURE);
     }
     // Exercise #x.x: Add a Topic for Temperature to this application
+
+    // Create Publisher and DataWriter
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -166,6 +168,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         return shutdown(participant, "DataWriter narrow error", EXIT_FAILURE);
     }
 
+    // Create Subscriber and DataReaders
+
     // A Subscriber allows an application to create one or more DataReaders
     // Subscriber QoS is configured in USER_QOS_PROFILES.xml
     DDSSubscriber *subscriber = participant->create_subscriber(
@@ -192,7 +196,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     // gets triggered when a status becomes true
     DDSStatusCondition *lot_state_status_condition =
             lot_state_generic_reader->get_statuscondition();
-    if (lot_state_status_condition   == NULL) {
+    if (lot_state_status_condition == NULL) {
         shutdown(participant, "get_statuscondition error", EXIT_FAILURE);
     }
 
@@ -214,6 +218,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     if (retcode != DDS_RETCODE_OK) {
         shutdown(participant, "attach_condition error", EXIT_FAILURE);
     }
+
     // Exercise #x.x: Add the new DataReader's StatusCondition to the Waitset
 
     // A narrow is a cast from a generic DataReader to one that is specific
@@ -228,7 +233,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     StartLotThreadData thread_data;
     thread_data.writer = lot_state_writer;
     thread_data.lots_to_process = sample_count;
-    OSThread thread((ThreadFunction)publish_start_lot, (void *)&thread_data);
+    OSThread thread((ThreadFunction) publish_start_lot, (void *) &thread_data);
     thread.run();
 
     // Main loop. Wait for data to arrive, and process when it arrives.
@@ -239,12 +244,12 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
         // wait() blocks execution of the thread until one or more attached
         // Conditions become true, or until a user-specified timeout expires.
-        DDS_Duration_t wait_timeout = { 4, 0 };
+        DDS_Duration_t wait_timeout = { 10, 0 };
         retcode = waitset.wait(active_conditions_seq, wait_timeout);
 
         // You get a timeout if no conditions were triggered before the timeout
         if (retcode == DDS_RETCODE_TIMEOUT) {
-            std::cout << "Wait timed out after 4 seconds." << std::endl;
+            std::cout << "Wait timed out after 10 seconds." << std::endl;
             continue;
         } else if (retcode != DDS_RETCODE_OK) {
             std::cerr << "wait returned error: " << retcode << std::endl;

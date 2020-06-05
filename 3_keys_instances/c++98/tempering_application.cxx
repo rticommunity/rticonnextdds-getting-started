@@ -33,8 +33,7 @@ static int shutdown(
         int status);
 
 // Structure to hold data for write thread
-struct TemperatureWriteData
-{
+struct TemperatureWriteData {
     TemperatureDataWriter *writer;
     const char *sensor_id;
 };
@@ -51,7 +50,7 @@ void publish_temperature(const TemperatureWriteData *write_data)
     while (!shutdown_requested) {
         // Modify the data to be written here
         snprintf(temperature.sensor_id, 255, "%s", write_data->sensor_id);
-        temperature.degrees = rand() % 3 + 30;  // Random number between 30 and 32
+        temperature.degrees = rand() % 3 + 30;  // Random num between 30 and 32
 
         writer->write(temperature, DDS_HANDLE_NIL);
 
@@ -82,10 +81,8 @@ void process_lot(
     // Process lots waiting for tempering
     for (int i = 0; i < data_seq.length(); ++i) {
         // Check if a sample is an instance lifecycle event
-        if (info_seq[i].valid_data)
-        {
-            if (data_seq[i].next_station == TEMPERING_CONTROLLER) 
-            {
+        if (info_seq[i].valid_data) {
+            if (data_seq[i].next_station == TEMPERING_CONTROLLER) {
                 std::cout << "Processing lot #" << data_seq[i].lot_id
                         << std::endl;
 
@@ -105,8 +102,7 @@ void process_lot(
                 // using a dispose
             }
 
-        } else
-        {
+        } else {
             std::cout << "Received instance state notification" << std::endl;
             continue;
         }
@@ -115,8 +111,7 @@ void process_lot(
     // Data sequence was loaned from middleware for performance.
     // Return loan when application is finished with data.
     lot_state_reader->return_loan(data_seq, info_seq);
-} 
-
+}
 
 int run_example(
         unsigned int domain_id,
@@ -282,13 +277,12 @@ int run_example(
     TemperatureWriteData write_data;
     write_data.writer = temperature_writer;
     write_data.sensor_id = sensor_id;
-    OSThread thread((ThreadFunction)publish_temperature, (void *)&write_data);
+    OSThread thread((ThreadFunction) publish_temperature, (void *) &write_data);
     thread.run();
 
     // Main loop, wait for lots
     // ------------------------
     while (!shutdown_requested) {
-
         // Wait for ChocolateLotState
         std::cout << "waiting for lot" << std::endl;
 
