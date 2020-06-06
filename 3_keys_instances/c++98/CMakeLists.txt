@@ -1,9 +1,9 @@
-# (c) 2019 Copyright, Real-Time Innovations, Inc. All rights reserved.
+# (c) 2020 Copyright, Real-Time Innovations, Inc. All rights reserved.
 # No duplications, whole or partial, manual or electronic, may be made
 # without express written permission.  Any such copies, or revisions thereof,
 # must display this notice unaltered.
 # This code contains trade secrets of Real-Time Innovations, Inc.
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.11)
 project(rticonnextdds-getting-started-keys-instances)
 set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
@@ -18,7 +18,6 @@ connextdds_add_example(
     LANG "C++"
     CODEGEN_ARGS
         LEGACY_PLUGIN
-    NO_REQUIRE_QOS
     APPLICATION_NAMES
         "tempering_application"
         "monitoring_ctrl_application"
