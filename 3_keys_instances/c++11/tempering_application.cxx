@@ -148,7 +148,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     while (!shutdown_requested) {
         // Wait for ChocolateLotState
-        std::cout << "waiting for lot" << std::endl;
+        std::cout << "Waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
     }
 
