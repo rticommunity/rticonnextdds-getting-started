@@ -18,7 +18,7 @@
 #include <rti/config/Logger.hpp>  // for logging
 // Or simply include <dds/dds.hpp> 
 
-#include "chocolate_factory.hpp"
+#include "temperature.hpp"
 #include "application.hpp"  // Argument parsing
 
 using namespace application;

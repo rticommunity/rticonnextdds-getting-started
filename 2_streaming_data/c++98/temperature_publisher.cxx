@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "chocolate_factory.h"
-#include "chocolate_factorySupport.h"
+#include "temperature.h"
+#include "temperatureSupport.h"
 #include "ndds/ndds_cpp.h"
 #include "application.h"
 
@@ -95,8 +95,6 @@ int run_example(
         return shutdown(participant, "DataWriter narrow error", EXIT_FAILURE);
     }
 
-    // Exercise #2.1: Add new Topic, data type, and DataWriter
-
     // Create data sample for writing
     Temperature *sample = TemperatureTypeSupport::create_data();
     if (sample == NULL) {
@@ -115,7 +113,6 @@ int run_example(
         snprintf(sample->sensor_id, 255, "%s", sensor_id);
         sample->degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
-        // Exercise #2.2 Write data with new ChocolateLotState DataWriter
 
         std::cout << "Writing ChocolateTemperature, count " << samples_written
                   << std::endl;
@@ -124,15 +121,13 @@ int run_example(
             std::cerr << "write error " << retcode << std::endl;
         }
 
-        // Exercise #1.1: Change this to sleep 100 ms in between writing temperatures
+        // Exercise: Change this to sleep 100 ms in between writing temperatures
         DDS_Duration_t send_period = { 4, 0 };
         NDDSUtility::sleep(send_period);
     }
 
     // Cleanup
     // -------
-    // Exercise #2.3 Clean up ChocolateLotState data sample
-
     // Delete data sample
     retcode = TemperatureTypeSupport::delete_data(sample);
     if (retcode != DDS_RETCODE_OK) {

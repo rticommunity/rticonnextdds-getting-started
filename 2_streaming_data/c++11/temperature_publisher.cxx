@@ -17,7 +17,7 @@
 #include <rti/config/Logger.hpp>  // for logging
 // Or simply include <dds/dds.hpp> 
 
-#include "chocolate_factory.hpp"
+#include "temperature.hpp"
 #include "application.hpp"  // Argument parsing
 
 using namespace application;
@@ -35,8 +35,6 @@ void run_example(
     // A Topic has a name and a datatype. Create a Topic named
     // "ChocolateTemperature" with type Temperature
     dds::topic::Topic<Temperature> topic(participant, "ChocolateTemperature");
-    // Exercise #2.1: Add new Topic
-
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -45,7 +43,6 @@ void run_example(
     // This DataWriter writes data on Topic "ChocolateTemperature"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::DataWriter<Temperature> writer(publisher, topic);
-    // Exercise #2.2: Add new DataWriter and data sample
 
     // Create data sample for writing
     Temperature sample;
@@ -56,14 +53,12 @@ void run_example(
         sample.sensor_id(sensor_id);
         sample.degrees(rand() % 3 + 30);  // Random number between 30 and 32
 
-        // Exercise #2.3 Write data with new ChocolateLotState DataWriter
-
         std::cout << "Writing ChocolateTemperature, count " << count
                   << std::endl;
 
         writer.write(sample);
 
-        // Exercise #1.1: Change this to sleep 100 ms in between writing temperatures
+        // Exercise: Change this to sleep 100 ms in between writing temperatures
         rti::util::sleep(dds::core::Duration(4));
     }
 }
