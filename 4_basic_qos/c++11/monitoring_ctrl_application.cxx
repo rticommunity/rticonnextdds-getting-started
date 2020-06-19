@@ -133,18 +133,16 @@ void run_example(
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
+    // Exercise #1.3: Update the lot_state_reader and temperature_reader
+    // to use correct QoS
     dds::sub::DataReader<ChocolateLotState> lot_state_reader(
-        subscriber,
-        topic,
-        qos_provider.datareader_qos(
-                "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
+            subscriber,
+            topic);
 
     // Add a DataReader for Temperature to this application
     dds::sub::DataReader<Temperature> temperature_reader(
             subscriber,
-            temperature_topic,
-            qos_provider.datareader_qos(
-                    "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
+            temperature_topic);
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition temperature_status_condition(
             temperature_reader);
