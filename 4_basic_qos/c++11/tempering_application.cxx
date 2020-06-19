@@ -88,7 +88,7 @@ void on_requested_incompatible_qos(dds::sub::DataReader<T>& reader)
 {
    dds::core::policy::QosPolicyId incompatible_policy = 
         reader.requested_incompatible_qos_status().last_policy_id();
-    // Exercise #3.2 add a message to print when this DataReader discovers an
+    // Exercise #3.1 add a message to print when this DataReader discovers an
     // incompatible DataWriter
 }
 
