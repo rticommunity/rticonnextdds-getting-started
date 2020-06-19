@@ -84,15 +84,10 @@ void process_lot(
 }  // The LoanedSamples destructor returns the loan
 
 template <typename T>
-void on_offered_incompatible_qos(dds::pub::DataWriter<T>& writer)
-{
-    // Exercise #3.1 add a message to print when this DataWriter discovers an
-    // incompatible DataReader
-}
-
-template <typename T>
 void on_requested_incompatible_qos(dds::sub::DataReader<T>& reader)
 {
+   dds::core::policy::QosPolicyId incompatible_policy = 
+        reader.requested_incompatible_qos_status().last_policy_id();
     // Exercise #3.2 add a message to print when this DataReader discovers an
     // incompatible DataWriter
 }
@@ -131,9 +126,6 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             qos_provider.datawriter_qos(
                     "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
 
-    // Exercise #3.3: Get the DataWriter's status condition and enable the
-    // offered incompatible QoS status.
-
     // Create DataWriter of Topic "ChocolateLotState"
     // using ChocolateLotStateProfile QoS profile
     dds::pub::DataWriter<ChocolateLotState> lot_state_writer(
@@ -141,19 +133,6 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             lot_state_topic,
             qos_provider.datawriter_qos(
                     "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
-
-    // DataWriters have events, too. Obtain the DataWriter's Status Condition,
-    // and enable the "offered_incompatible_qos" status
-    dds::core::cond::StatusCondition lot_writer_status_condition(
-            lot_state_writer);
-    lot_writer_status_condition.enabled_statuses(
-            dds::core::status::StatusMask::offered_incompatible_qos());
-
-    // Associate a handler with the status condition. This will run when the
-    // condition is triggered, in the context of the dispatch call (see below)
-    lot_writer_status_condition.extensions().handler([&lot_state_writer]() {
-                on_offered_incompatible_qos(lot_state_writer);
-    });
 
     // A Subscriber allows an application to create one or more DataReaders
     dds::sub::Subscriber subscriber(participant);
@@ -193,8 +172,6 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
     waitset += reader_status_condition;
-    waitset += lot_writer_status_condition;
-    // Exercise #3.4: Add the other status condition to the waitset
 
     // Create a thread to periodically publish the temperature
     std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
@@ -206,7 +183,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     while (!shutdown_requested) {
         // Wait for ChocolateLotState
-        std::cout << "waiting for lot" << std::endl;
+        std::cout << "Waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
     }
 

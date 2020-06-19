@@ -115,9 +115,9 @@ void run_example(
             participant,
             CHOCOLATE_LOT_STATE_TOPIC);
     // Add a Topic for Temperature to this application
-   dds::topic::Topic<Temperature> temperature_topic(
-           participant,
-           CHOCOLATE_TEMPERATURE_TOPIC);
+    dds::topic::Topic<Temperature> temperature_topic(
+            participant,
+            CHOCOLATE_TEMPERATURE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -133,14 +133,18 @@ void run_example(
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
-    // Exercise #4.2: Load ChocolateLotState DataReader QoS profile
-    dds::sub::DataReader<ChocolateLotState> lot_state_reader(subscriber, topic);
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
+        subscriber,
+        topic,
+        qos_provider.datareader_qos(
+                "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
     // Add a DataReader for Temperature to this application
-    // Exercise #4.3: Load ChocolateTemperature DataReader QoS profile
     dds::sub::DataReader<Temperature> temperature_reader(
             subscriber,
-            temperature_topic);
+            temperature_topic,
+            qos_provider.datareader_qos(
+                    "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition temperature_status_condition(
             temperature_reader);
