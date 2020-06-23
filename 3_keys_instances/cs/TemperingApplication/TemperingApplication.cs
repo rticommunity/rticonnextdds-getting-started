@@ -96,14 +96,15 @@ namespace KeyesInstances
             DomainParticipant participant = DomainParticipantFactory.Instance
                 .CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype. Create Topics.
-            // Topic names are constants defined in the IDL file.
+            // A Topic has a name and a datatype. Create Topics using the types
+            // defined in chocolate_factory.xml
+            var provider = new QosProvider("../chocolate_factory.xml");
             Topic<Temperature> temperatureTopic = participant.CreateTopic(
-                Utils.TemperatureTopicName,
-                Utils.GetTemperatureType());
+                "ChocolateTemperature",
+                provider.GetType("Temperature"));
             Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic(
-                Utils.ChocolateLotStateTopicName,
-                Utils.GetChocolateLotStateType());
+                "ChocolateLotState",
+                provider.GetType("ChocolateLotState"));
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml

@@ -88,9 +88,10 @@ namespace KeyesInstances
             // "ChocolateLotState" with type ChocolateLotState
             // In this example we use a DynamicType defined in XML, which creates
             // a DynamicData topic.
+            var provider = new QosProvider("../chocolate_factory.xml");
             Topic<DynamicData> topic = participant.CreateTopic(
-                Utils.ChocolateLotStateTopicName,
-                Utils.GetChocolateLotStateType());
+                "ChocolateLotState",
+                provider.GetType("ChocolateLotState"));
             // Exercise #4.1: Add a Topic for Temperature to this application
 
             // A Publisher allows an application to create one or more DataWriters

@@ -45,9 +45,10 @@ namespace StreamingData
             // "ChocolateTemperature" with type Temperature
             // In this example we use a DynamicType defined in XML, which creates
             // a DynamicData topic.
+            var provider = new QosProvider("../temperature.xml");
             Topic<DynamicData> topic = participant.CreateTopic(
                 "ChocolateTemperature",
-                Utils.GetTemperatureType());
+                provider.GetType("Temperature"));
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml

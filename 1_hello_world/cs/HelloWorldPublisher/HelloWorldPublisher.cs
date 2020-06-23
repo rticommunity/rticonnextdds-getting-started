@@ -13,6 +13,9 @@
 using System;
 using System.Threading;
 using Rti.Dds.Core;
+using Rti.Dds.Domain;
+using Rti.Dds.Publication;
+using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
 namespace HelloWorld
@@ -23,18 +26,38 @@ namespace HelloWorld
     public static class HelloWorldPublisher
     {
         /// <summary>
-        /// Main function, receiving structured command-line arguments
+        /// Main function, receiving structured command-line arguments, for example:
+        /// dotnet run -- --domain-id 54 --sample-count 5
         /// </summary>
+        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
         /// <param name="sampleCount">The number of data samples to publish</param>
-        public static void Main(int sampleCount = 10)
+        public static void Main(int domainId = 0, int sampleCount = 10)
         {
-            var provider = new QosProvider("../hello_world.xml");
-            using var participant = provider.CreateParticipantFromConfig(
-                "participants::hello_world_participant");
+            // A DomainParticipant allows an application to begin communicating in
+            // a DDS domain. Typically there is one DomainParticipant per application.
+            // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
+            //
+            // A participant needs to be Disposed to release middleware resources.
+            // The 'using' keyword indicates that it will be Disposed when this
+            // scope ends.
+            using DomainParticipant participant = DomainParticipantFactory.Instance
+                .CreateParticipant(domainId);
 
-            var writer = participant.ImplicitPublisher.LookupDataWriter<DynamicData>(
-                "ExampleHelloWorld")
-                ?? throw new Exception("writer not found");
+            // A Topic has a name and a datatype. Create dynamically-typed
+            // Topic named "HelloWorld Topic" with the type definition of
+            // "HelloWorld" in hell_world.xml. To get the type we use a QosProvider
+            var provider = new QosProvider("../hello_world.xml");
+            Topic<DynamicData> topic = participant.CreateTopic(
+                "Example HelloWorld",
+                provider.GetType("HelloWorld"));
+
+            // A Publisher allows an application to create one or more DataWriters
+            // Publisher QoS is configured in USER_QOS_PROFILES.xml
+            Publisher publisher = participant.CreatePublisher();
+
+            // This DataWriter will write data on Topic "HelloWorld Topic"
+            // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+            DataWriter<DynamicData> writer = publisher.CreateDataWriter(topic);
 
             var sample = writer.CreateData();
             for (int count = 0; count < sampleCount; count++)
