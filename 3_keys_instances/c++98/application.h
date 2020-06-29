@@ -34,6 +34,7 @@
 #endif
 
 #include "ndds/ndds_cpp.h"
+#include "chocolate_factoryPlugin.h"
 
 namespace application {
 
@@ -108,6 +109,64 @@ private:
     // Parameter to the function
     void *function_param;
 };
+
+void print_station_kind(StationKind station_kind)
+{
+    switch(station_kind) {
+    case 0:
+        std::cout << "INVALID_CONTROLLER";
+        break;
+    case 1:
+        std::cout << "SUGAR_CONTROLLER";
+        break;
+    case 2:
+        std::cout << "COCOA_BUTTER_CONTROLLER";
+        break;
+    case 3:
+        std::cout << "COCOA_LIQUOR_CONTROLLER";
+        break;
+    case 4:
+        std::cout << "VANILLA_CONTROLLER";
+        break;
+    case 5:
+        std::cout << "MILK_CONTROLLER";
+        break;
+    case 6:
+        std::cout << "TEMPERING_CONTROLLER";
+        break;
+    }
+}
+
+void print_lot_status_kind(LotStatusKind lot_status_kind)
+{
+    switch(lot_status_kind)
+    {
+    case 0:
+        std::cout << "WAITING";
+        break;
+    case 1:
+        std::cout << "PROCESSING";
+        break;
+    case 2:
+        std::cout << "COMPLETED";
+        break;
+    }
+}
+
+void print_chocolate_lot_data(ChocolateLotState *sample)
+{
+    if (sample == NULL) {
+        std::cout << "Trying to print NULL sample" << std::endl;
+        return;
+    }
+    std::cout << "[" << "lot_id: " << sample->lot_id << ", " << "station: ";
+    print_station_kind(sample->station);
+    std::cout << ", next_station: ";
+    print_station_kind(sample->next_station);
+    std::cout << ", lot_status: ";
+    print_lot_status_kind(sample->lot_status);
+    std::cout << "]" << std::endl;
+}
 
 enum ParseReturn { PARSE_RETURN_OK, PARSE_RETURN_FAILURE, PARSE_RETURN_EXIT };
 

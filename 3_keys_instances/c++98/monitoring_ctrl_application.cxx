@@ -46,13 +46,17 @@ void publish_start_lot(StartLotThreadData *thread_data)
         sample.lot_status = WAITING;
         sample.next_station = TEMPERING_CONTROLLER;
 
-        std::cout << std::endl << "Starting lot: " << std::endl;
-        std::cout << "[lot_id: " << sample.lot_id
-                  << " next_station: " << sample.next_station << "]"
-                  << std::endl;
+        std::cout << std::endl
+                  << "Starting lot: " << std::endl
+                  << "[lot_id: " << sample.lot_id << " next_station: ";
+        print_station_kind(sample.next_station);
+        std::cout << "]" << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
-        writer->write(sample, DDS_HANDLE_NIL);
+        DDS_ReturnCode_t retcode = writer->write(sample, DDS_HANDLE_NIL);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "write error " << retcode << std::endl;
+        }
 
         // Start a new lot every 10 seconds
         DDS_Duration_t send_period = { 10, 0 };
@@ -69,8 +73,7 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
 
     // Take available data from DataReader's queue
     DDS_ReturnCode_t retcode = lot_state_reader->take(data_seq, info_seq);
-
-    if (retcode != DDS_RETCODE_OK) {
+    if (retcode != DDS_RETCODE_OK && retcode != DDS_RETCODE_NO_DATA) {
         std::cerr << "take error " << retcode << std::endl;
         return 0;
     }
@@ -80,7 +83,7 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
         // Check if a sample is an instance lifecycle event
         if (info_seq[i].valid_data) {
             std::cout << "Received lot update:" << std::endl;
-            ChocolateLotStateTypeSupport::print_data(&data_seq[i]);
+            application::print_chocolate_lot_data(&data_seq[i]);
             samples_read++;
         } else {
             // Exercise #x.x: Detect that a lot is complete by checking for
@@ -89,7 +92,10 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
     }
     // Data sequence was loaned from middleware for performance.
     // Return loan when application is finished with data.
-    lot_state_reader->return_loan(data_seq, info_seq);
+    retcode = lot_state_reader->return_loan(data_seq, info_seq);
+    if (retcode != DDS_RETCODE_OK) {
+        std::cerr << "return_loan error " << retcode << std::endl;
+    }
     
     return samples_read;
 }
@@ -244,7 +250,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 
         // wait() blocks execution of the thread until one or more attached
         // Conditions become true, or until a user-specified timeout expires.
-        DDS_Duration_t wait_timeout = { 10, 0 };
+        DDS_Duration_t wait_timeout = { 15, 0 };
         retcode = waitset.wait(active_conditions_seq, wait_timeout);
 
         // You get a timeout if no conditions were triggered before the timeout

@@ -52,7 +52,10 @@ void publish_temperature(const TemperatureWriteData *write_data)
         snprintf(temperature.sensor_id, 255, "%s", write_data->sensor_id);
         temperature.degrees = rand() % 3 + 30;  // Random num between 30 and 32
 
-        writer->write(temperature, DDS_HANDLE_NIL);
+        DDS_ReturnCode_t retcode = writer->write(temperature, DDS_HANDLE_NIL);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "write error " << retcode << std::endl;
+        }
 
         // Update temperature every 100 ms
         DDS_Duration_t send_period = { 0, 100000000 };
@@ -73,7 +76,7 @@ void process_lot(
     // Take available data from DataReader's queue
     DDS_ReturnCode_t retcode = lot_state_reader->take(data_seq, info_seq);
     
-    if (retcode != DDS_RETCODE_OK) {
+    if (retcode != DDS_RETCODE_OK && retcode != DDS_RETCODE_NO_DATA) {
         std::cerr << "take error " << retcode << std::endl;
         return;
     }
@@ -91,7 +94,11 @@ void process_lot(
                 updated_state.lot_status = PROCESSING;
                 updated_state.next_station = INVALID_CONTROLLER;
                 updated_state.station = TEMPERING_CONTROLLER;
-                lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
+                DDS_ReturnCode_t retcode =
+                        lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
+                if (retcode != DDS_RETCODE_OK) {
+                    std::cerr << "write error " << retcode << std::endl;
+                }
 
                 // "Processing" the lot.
                 DDS_Duration_t processing_time = { 5, 0 };
@@ -110,7 +117,10 @@ void process_lot(
 
     // Data sequence was loaned from middleware for performance.
     // Return loan when application is finished with data.
-    lot_state_reader->return_loan(data_seq, info_seq);
+    retcode = lot_state_reader->return_loan(data_seq, info_seq);
+    if (retcode != DDS_RETCODE_OK) {
+        std::cerr << "return_loan error " << retcode << std::endl;
+    }
 }
 
 int run_example(
@@ -284,7 +294,7 @@ int run_example(
     // ------------------------
     while (!shutdown_requested) {
         // Wait for ChocolateLotState
-        std::cout << "waiting for lot" << std::endl;
+        std::cout << "Waiting for lot" << std::endl;
 
         // wait() blocks execution of the thread until one or more attached
         // Conditions become true, or until a user-specified timeout expires.
