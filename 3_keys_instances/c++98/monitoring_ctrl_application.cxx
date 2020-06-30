@@ -86,8 +86,9 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
             application::print_chocolate_lot_data(&data_seq[i]);
             samples_read++;
         } else {
-            // Exercise #x.x: Detect that a lot is complete by checking for
+            // Exercise #3.2: Detect that a lot is complete by checking for
             // the disposed state.
+
         }
     }
     // Data sequence was loaned from middleware for performance.
@@ -96,12 +97,11 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
     if (retcode != DDS_RETCODE_OK) {
         std::cerr << "return_loan error " << retcode << std::endl;
     }
-    
+
     return samples_read;
 }
 
-// Exercise #x.x: Add monitor_temperature function
-
+// Exercise #4.6: Add monitor_temperature function
 
 int run_example(unsigned int domain_id, unsigned int sample_count)
 {
@@ -142,7 +142,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     if (lot_state_topic == NULL) {
         shutdown(participant, "create_topic error", EXIT_FAILURE);
     }
-    // Exercise #x.x: Add a Topic for Temperature to this application
+    // Exercise #4.1: Add a Topic for Temperature to this application
 
     // Create Publisher and DataWriter
 
@@ -186,8 +186,8 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         shutdown(participant, "create_subscriber error", EXIT_FAILURE);
     }
 
-    // This DataReader reads data of type Temperature on Topic
-    // "ChocolateTemperature". DataReader QoS is configured in
+    // This DataReader reads data of type ChocolateLotState on Topic
+    // "ChocolateLotState". DataReader QoS is configured in
     // USER_QOS_PROFILES.xml
     DDSDataReader *lot_state_generic_reader = subscriber->create_datareader(
             lot_state_topic,
@@ -214,7 +214,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         shutdown(participant, "set_enabled_statuses error", EXIT_FAILURE);
     }
 
-    // Exercise #x.x: Add a DataReader for Temperature to this application
+    // Exercise #4.2: Add a DataReader for Temperature to this application
 
 
     // Create the WaitSet and attach the Status Condition to it. The WaitSet
@@ -225,7 +225,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         shutdown(participant, "attach_condition error", EXIT_FAILURE);
     }
 
-    // Exercise #x.x: Add the new DataReader's StatusCondition to the Waitset
+    // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
 
     // A narrow is a cast from a generic DataReader to one that is specific
     // to your type. Use the type specific DataReader to read data
@@ -234,6 +234,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
     if (lot_state_reader == NULL) {
         shutdown(participant, "DataReader narrow error", EXIT_FAILURE);
     }
+    // Exercise #4.4: Cast from a generic DataReader to a TemperatureDataReader
 
     // Create a thread to periodically start new chocolate lots
     StartLotThreadData thread_data;
@@ -262,7 +263,6 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
             break;
         }
 
-        // Exercise #x.x: Check which DataReader received DATA_AVAILABLE event
         // Get the status changes to check which status condition
         // triggered the WaitSet to wake
         DDS_StatusMask triggeredmask = lot_state_reader->get_status_changes();
@@ -271,6 +271,9 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
         if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
             samples_read += monitor_lot_state(lot_state_reader);
         }
+        // Exercise #4.5: Check if the temperature DataReader received 
+        // DATA_AVAILABLE event notification
+
     }
 
     // Cleanup

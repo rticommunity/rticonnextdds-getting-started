@@ -46,7 +46,6 @@ void publish_temperature(const TemperatureWriteData *write_data)
     Temperature temperature;
     temperature.sensor_id = DDS_String_alloc(256);
 
-
     while (!shutdown_requested) {
         // Modify the data to be written here
         snprintf(temperature.sensor_id, 255, "%s", write_data->sensor_id);
@@ -107,10 +106,11 @@ void process_lot(
                 // Exercise #3.1: Since this is the last step in processing,
                 // notify the monitoring application that the lot is complete
                 // using a dispose
+
             }
 
         } else {
-            std::cout << "Received instance state notification" << std::endl;
+            // Received instance state notification
             continue;
         }
     }
@@ -288,6 +288,8 @@ int run_example(
     write_data.writer = temperature_writer;
     write_data.sensor_id = sensor_id;
     OSThread thread((ThreadFunction) publish_temperature, (void *) &write_data);
+    std::cout << "ChocolateTemperature Sensor with ID: " << write_data.sensor_id
+              << " starting" << std::endl;
     thread.run();
 
     // Main loop, wait for lots
