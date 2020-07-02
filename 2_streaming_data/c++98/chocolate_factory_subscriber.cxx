@@ -14,8 +14,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "temperature.h"
-#include "temperatureSupport.h"
+#include "chocolate_factory.h"
+#include "chocolate_factorySupport.h"
 #include "ndds/ndds_cpp.h"
 #include "application.h"
 
