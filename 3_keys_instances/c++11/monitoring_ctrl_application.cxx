@@ -46,7 +46,7 @@ void publish_start_lot(
         // Send an update to station that there is a lot waiting for tempering
         writer.write(sample);
 
-        rti::util::sleep(dds::core::Duration(8));
+        rti::util::sleep(dds::core::Duration(10));
     }
 }
 
@@ -129,7 +129,7 @@ void run_example(
     waitset += status_condition;
     // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
 
-    // Create a thread to periodically publish the temperature
+    // Create a thread to periodically start new chocolate lots
     std::thread start_lot_thread(
             publish_start_lot,
             std::ref(writer),

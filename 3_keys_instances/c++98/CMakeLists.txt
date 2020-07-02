@@ -15,7 +15,7 @@ include(ConnextDdsAddExample)
 
 connextdds_add_example(
     IDL "chocolate_factory"
-    LANG "C++11"
+    LANG "C++"
     CODEGEN_ARGS
         LEGACY_PLUGIN
     APPLICATION_NAMES

@@ -138,7 +138,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     dds::core::cond::WaitSet waitset;
     waitset += status_condition;
 
-    // Create a thread to periodically publish the temperature
+    // Create a thread to periodically write the temperature
     std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id
               << " starting" << std::endl;
     std::thread temperature_thread(
@@ -148,7 +148,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     while (!shutdown_requested) {
         // Wait for ChocolateLotState
-        std::cout << "waiting for lot" << std::endl;
+        std::cout << "Waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
     }
 

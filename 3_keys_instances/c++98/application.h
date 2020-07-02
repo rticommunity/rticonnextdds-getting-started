@@ -16,7 +16,25 @@
 #include <iostream>
 #include <csignal>
 #include <limits>
+
+#ifdef RTI_WIN32
+  /* strtok, fopen warnings */
+  #pragma warning( disable : 4996 )
+#endif
+
+#ifdef RTI_WIN32
+  #define DllExport __declspec( dllexport )
+  #include <Winsock2.h>
+  #include <process.h>
+#else
+  #define DllExport
+  #include <sys/select.h>
+  #include <semaphore.h>
+  #include <pthread.h>
+#endif
+
 #include "ndds/ndds_cpp.h"
+#include "chocolate_factoryPlugin.h"
 
 namespace application {
 
@@ -33,6 +51,121 @@ inline void setup_signal_handlers()
 {
     signal(SIGINT, stop_handler);
     signal(SIGTERM, stop_handler);
+}
+
+// A function that takes a void pointer, and is passed to the thread creation
+// function.
+typedef void* (*ThreadFunction)(void *);
+
+class OSThread
+{
+public:
+    OSThread(ThreadFunction function, void *function_param):
+            function(function),
+            function_param(function_param)
+    {
+    }
+
+    // Run the thread
+    void run()
+    {
+#ifdef RTI_WIN32
+        thread = (HANDLE) _beginthread(
+            (void(__cdecl*)(void*))function,
+            0, (void*)function_param);
+#else
+        pthread_attr_t thread_attr;
+        pthread_attr_init(&thread_attr);
+        pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
+        int error = pthread_create(
+                    &thread,
+                    &thread_attr,
+                    function,
+                    (void *)function_param);
+        pthread_attr_destroy(&thread_attr);
+#endif
+    }
+    // Join the thread
+    void join()
+    {
+#ifdef RTI_WIN32
+        WaitForSingleObject(thread, INFINITE);
+#else
+        void *ret_val;
+        int error = pthread_join(thread, &ret_val);
+#endif
+    }
+
+private:
+    // OS-specific thread definition
+#ifdef RTI_WIN32
+    HANDLE thread;
+#else
+    pthread_t thread;
+#endif
+    // Function called by OS-specific thread
+    ThreadFunction function;
+
+    // Parameter to the function
+    void *function_param;
+};
+
+void print_station_kind(StationKind station_kind)
+{
+    switch(station_kind) {
+    case 0:
+        std::cout << "INVALID_CONTROLLER";
+        break;
+    case 1:
+        std::cout << "SUGAR_CONTROLLER";
+        break;
+    case 2:
+        std::cout << "COCOA_BUTTER_CONTROLLER";
+        break;
+    case 3:
+        std::cout << "COCOA_LIQUOR_CONTROLLER";
+        break;
+    case 4:
+        std::cout << "VANILLA_CONTROLLER";
+        break;
+    case 5:
+        std::cout << "MILK_CONTROLLER";
+        break;
+    case 6:
+        std::cout << "TEMPERING_CONTROLLER";
+        break;
+    }
+}
+
+void print_lot_status_kind(LotStatusKind lot_status_kind)
+{
+    switch(lot_status_kind)
+    {
+    case 0:
+        std::cout << "WAITING";
+        break;
+    case 1:
+        std::cout << "PROCESSING";
+        break;
+    case 2:
+        std::cout << "COMPLETED";
+        break;
+    }
+}
+
+void print_chocolate_lot_data(ChocolateLotState *sample)
+{
+    if (sample == NULL) {
+        std::cout << "Trying to print NULL sample" << std::endl;
+        return;
+    }
+    std::cout << "[" << "lot_id: " << sample->lot_id << ", " << "station: ";
+    print_station_kind(sample->station);
+    std::cout << ", next_station: ";
+    print_station_kind(sample->next_station);
+    std::cout << ", lot_status: ";
+    print_lot_status_kind(sample->lot_status);
+    std::cout << "]" << std::endl;
 }
 
 enum ParseReturn { PARSE_RETURN_OK, PARSE_RETURN_FAILURE, PARSE_RETURN_EXIT };
