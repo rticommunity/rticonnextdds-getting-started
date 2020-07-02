@@ -191,6 +191,9 @@ inline void parse_arguments(
     arguments.sample_count = (std::numeric_limits<unsigned int>::max)();
     arguments.verbosity = NDDS_CONFIG_LOG_VERBOSITY_ERROR;
     arguments.parse_result = PARSE_RETURN_OK;
+    // Initialize with an integer value
+    srand((unsigned int)time(NULL));
+    snprintf(arguments.sensor_id, 255, "%d", rand() % 10);
 
     while (arg_processing < argc) {
         if (strcmp(argv[arg_processing], "-d") == 0
@@ -201,7 +204,7 @@ inline void parse_arguments(
                 || strcmp(argv[arg_processing], "--sample-count") == 0) {
             arguments.sample_count = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-id") == 0
+        } else if (strcmp(argv[arg_processing], "-i") == 0
                 || strcmp(argv[arg_processing], "--sensor-id") == 0) {
             snprintf(arguments.sensor_id, 255, "%s", argv[arg_processing + 1]);
             arg_processing += 2;
@@ -231,6 +234,7 @@ inline void parse_arguments(
                     "    -s, --sample_count <int>   Number of samples to receive before\n"\
                     "                               cleanly shutting down. \n"
                     "                               Default: infinite\n"
+                    "    -i, --sensor-id   <string> Unique ID of temperature sensor.\n"\
                     "    -v, --verbosity    <int>   How much debugging output to show.\n"\
                     "                               Range: 0-5 \n"
                     "                               Default: 0"
