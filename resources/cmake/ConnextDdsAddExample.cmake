@@ -177,7 +177,7 @@ include(ConnextDdsCodegen)
 
 function(connextdds_add_example)
     set(optional_args DISABLE_SUBSCRIBER NO_REQUIRE_QOS)
-    set(single_value_args IDL LANG PREFIX)
+    set(single_value_args IDL LANG PREFIX QOS_FILENAME)
     set(multi_value_args CODEGEN_ARGS DEPENDENCIES APPLICATION_NAMES)
     cmake_parse_arguments(_CONNEXT
         "${optional_args}"
@@ -223,13 +223,19 @@ function(connextdds_add_example)
         ${codegen_args}
     )
 
+    # Set the name of the QoS file if required
+    if(_CONNEXT_QOS_FILENAME)
+        set(qos_filename QOS_FILENAME "${_CONNEXT_QOS_FILENAME}")
+    else()
+        set(qos_filename)
+    endif()
+
     # Copy the USER_QOS_PROFILES.xml file if required
     if(_CONNEXT_NO_REQUIRE_QOS)
         set(no_require_qos NO_REQUIRE_QOS)
     else()
         set(no_require_qos)
     endif()
-
 
     # We will use source code provided to build applications
     # in the repository for the application names specified
@@ -254,6 +260,7 @@ function(connextdds_add_example)
             SOURCES ${${_APPLICATION_NAME}_src}
             PREFIX ${prefix}
             OUTPUT_NAME "${_APPLICATION_NAME}"
+            ${qos_filename}
             ${no_require_qos}
             SOURCES
                 $<TARGET_OBJECTS:${prefix}_${lang_var}_obj>

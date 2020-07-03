@@ -99,7 +99,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
 
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // Uses TemperingApplication profile to set participant name.
+    // Uses TemperingApplication QoS profile to set participant name.
     dds::domain::DomainParticipant participant(
                 domain_id,
                 qos_provider.participant_qos(
@@ -173,7 +173,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     dds::core::cond::WaitSet waitset;
     waitset += reader_status_condition;
 
-    // Create a thread to periodically publish the temperature
+    // Create a thread to periodically write the temperature
     std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
               << " starting" << std::endl;              
     std::thread temperature_thread(
