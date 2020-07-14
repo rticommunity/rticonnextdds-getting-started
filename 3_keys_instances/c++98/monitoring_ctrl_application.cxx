@@ -83,7 +83,7 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
         // Check if a sample is an instance lifecycle event
         if (info_seq[i].valid_data) {
             std::cout << "Received lot update:" << std::endl;
-            application::print_chocolate_lot_data(&data_seq[i]);
+            application::print_chocolate_lot_data(data_seq[i]);
             samples_read++;
         } else {
             // Exercise #3.2: Detect that a lot is complete by checking for

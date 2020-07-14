@@ -315,10 +315,10 @@ int run_example(
 
         // Get the status changes to check which status condition
         // triggered the WaitSet to wake
-        DDS_StatusMask triggeredmask = lot_state_reader->get_status_changes();
+        DDS_StatusMask triggered_mask = lot_state_reader->get_status_changes();
 
         // If the status is "Data Available"
-        if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
+        if (triggered_mask & DDS_DATA_AVAILABLE_STATUS) {
             process_lot(lot_state_reader, lot_state_writer);
         }
     }
