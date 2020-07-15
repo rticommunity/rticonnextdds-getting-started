@@ -44,7 +44,7 @@ void publish_temperature(const TemperatureWriteData *write_data)
 
     // Create temperature sample for writing
     Temperature temperature;
-    temperature.sensor_id = DDS_String_alloc(256);
+    TemperatureTypeSupport::initialize_data(&temperature);
 
     while (!shutdown_requested) {
         // Modify the data to be written here
@@ -60,7 +60,7 @@ void publish_temperature(const TemperatureWriteData *write_data)
         DDS_Duration_t send_period = { 0, 100000000 };
         NDDSUtility::sleep(send_period);
     }
-    DDS_String_free(temperature.sensor_id);    
+    TemperatureTypeSupport::finalize_data(&temperature);
 }
 
 void process_lot(
@@ -315,10 +315,10 @@ int run_example(
 
         // Get the status changes to check which status condition
         // triggered the WaitSet to wake
-        DDS_StatusMask triggeredmask = lot_state_reader->get_status_changes();
+        DDS_StatusMask triggered_mask = lot_state_reader->get_status_changes();
 
         // If the status is "Data Available"
-        if (triggeredmask & DDS_DATA_AVAILABLE_STATUS) {
+        if (triggered_mask & DDS_DATA_AVAILABLE_STATUS) {
             process_lot(lot_state_reader, lot_state_writer);
         }
     }
@@ -331,7 +331,7 @@ int run_example(
 }
 
 // Delete all entities
-static int shutdown(
+int shutdown(
         DDSDomainParticipant *participant,
         const char *shutdown_message,
         int status)
