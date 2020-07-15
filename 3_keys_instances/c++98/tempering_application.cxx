@@ -44,7 +44,7 @@ void publish_temperature(const TemperatureWriteData *write_data)
 
     // Create temperature sample for writing
     Temperature temperature;
-    temperature.sensor_id = DDS_String_alloc(256);
+    TemperatureTypeSupport::initialize_data(&temperature);
 
     while (!shutdown_requested) {
         // Modify the data to be written here
@@ -60,7 +60,7 @@ void publish_temperature(const TemperatureWriteData *write_data)
         DDS_Duration_t send_period = { 0, 100000000 };
         NDDSUtility::sleep(send_period);
     }
-    DDS_String_free(temperature.sensor_id);    
+    TemperatureTypeSupport::finalize_data(&temperature);
 }
 
 void process_lot(
@@ -331,7 +331,7 @@ int run_example(
 }
 
 // Delete all entities
-static int shutdown(
+int shutdown(
         DDSDomainParticipant *participant,
         const char *shutdown_message,
         int status)
