@@ -35,6 +35,7 @@ struct StartLotThreadData {
 void publish_start_lot(StartLotThreadData *thread_data)
 {
     ChocolateLotState sample;
+    ChocolateLotStateTypeSupport::initialize_data(&sample);
     unsigned int lots_to_process = thread_data->lots_to_process;
     ChocolateLotStateDataWriter *writer = thread_data->writer;
 
@@ -62,6 +63,7 @@ void publish_start_lot(StartLotThreadData *thread_data)
         DDS_Duration_t send_period = { 10, 0 };
         NDDSUtility::sleep(send_period);
     }
+    ChocolateLotStateTypeSupport::finalize_data(&sample);
 }
 
 // Process data. Returns number of samples processed.
@@ -83,7 +85,7 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
         // Check if a sample is an instance lifecycle event
         if (info_seq[i].valid_data) {
             std::cout << "Received lot update:" << std::endl;
-            application::print_chocolate_lot_data(&data_seq[i]);
+            application::print_chocolate_lot_data(data_seq[i]);
             samples_read++;
         } else {
             // Detect that a lot is complete because the instance is disposed
@@ -384,7 +386,7 @@ int run_example(unsigned int domain_id, unsigned int sample_count)
 }
 
 // Delete all entities
-static int shutdown(
+int shutdown(
         DDSDomainParticipant *participant,
         const char *shutdown_message,
         int status)
