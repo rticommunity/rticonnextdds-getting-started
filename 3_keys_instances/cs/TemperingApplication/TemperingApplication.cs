@@ -32,17 +32,20 @@ namespace KeyesInstances
     /// <summary>
     /// Example subscriber application
     /// </summary>
-    public static class TemperatureSubscriber
+    public class TemperatureSubscriber
     {
-        private static readonly Random rand = new Random();
+        private readonly Random rand = new Random();
+        private readonly Utils.ChocolateFactoryTypes types =
+            new Utils.ChocolateFactoryTypes();
+        private bool shutdownRequested = false;
 
-        private static void PublishTemperature(
+        private void PublishTemperature(
             DataWriter<Temperature> writer,
             string sensorId)
         {
             // Create temperature sample for writing
             var temperature = writer.CreateData();
-            while (true)
+            while (!shutdownRequested)
             {
                 // Modify the data to be written here
                 temperature.SetValue("sensor_id", sensorId);
@@ -54,20 +57,22 @@ namespace KeyesInstances
             }
         }
 
-        private static void ProcessLot(
+        private void ProcessLot(
             DataReader<ChocolateLotState> lotStateReader,
             DataWriter<ChocolateLotState> lotStateWriter)
         {
             using var samples = lotStateReader.Take();
             foreach (var sample in samples.ValidData)
             {
-                if (sample.GetInt32Value("next_station") == 6) // TODO: use enumerator
+                if (sample.GetInt32Value("next_station") ==
+                        types.StationKind.GetMember("TEMPERING_CONTROLLER").Ordinal)
                 {
                     uint lotId = sample.GetUInt32Value("lot_id");
                     Console.WriteLine($"Processing lot #{lotId}");
 
                     // Send an update that the tempering station is processing lot
                     var updatedState = lotStateWriter.CreateData();
+                    updatedState.SetValue("lot_id", lotId);
                     updatedState.SetAnyValue("lot_status", "PROCESSING");
                     updatedState.SetAnyValue("next_station", "INVALID_CONTROLLER");
                     updatedState.SetAnyValue("station", "TEMPERING_CONTROLLER");
@@ -79,16 +84,13 @@ namespace KeyesInstances
                     // Exercise #3.1: Since this is the last step in processing,
                     // notify the monitoring application that the lot is complete
                     // using a dispose
+                    var instanceHandle = lotStateWriter.LookupInstance(updatedState);
+                    lotStateWriter.DisposeInstance(instanceHandle);
                 }
             }
         }
 
-        /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sensorId">Identifies the sensor ID used in the example</param>
-        public static void Main(int domainId = 0, string sensorId = "default_id")
+        private void RunExample(int domainId = 0, string sensorId = "default_id")
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -101,10 +103,10 @@ namespace KeyesInstances
             var provider = new QosProvider("../chocolate_factory.xml");
             Topic<Temperature> temperatureTopic = participant.CreateTopic(
                 "ChocolateTemperature",
-                provider.GetType("Temperature"));
+                types.Temperature);
             Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic(
                 "ChocolateLotState",
-                provider.GetType("ChocolateLotState"));
+                types.ChocolateLotState);
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -148,17 +150,42 @@ namespace KeyesInstances
             var temperatureTask = Task.Run(
                 () => PublishTemperature(temperatureWriter, sensorId));
 
-            bool shutdownRequested = false;
-            Console.CancelKeyPress += (_, _1) => shutdownRequested = true;
             while (!shutdownRequested)
             {
-                // Dispatch will call the handlers associated to the WaitSet
-                // conditions when they activate
-                Console.WriteLine("ChocolateTemperature subscriber sleeping for 4 sec...");
+                // Wait for ChocolateLotState
+                Console.WriteLine("Waiting for lot");
                 waitset.Dispatch(Duration.FromSeconds(4));
             }
 
             temperatureTask.Wait();
+        }
+
+        /// <summary>
+        /// Main function, receiving structured command-line arguments
+        /// </summary>
+        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
+        /// <param name="sensorId">Identifies the sensor ID used in the example</param>
+        public static void Main(int domainId = 0, string sensorId = "default_id")
+        {
+            var example = new TemperatureSubscriber();
+
+            // Setup signal handler
+            Console.CancelKeyPress += (_, eventArgs) =>
+            {
+                Console.WriteLine("Shuting down...");
+                eventArgs.Cancel = true; // let the application shutdown gracefully
+                example.shutdownRequested = true;
+            };
+
+            try
+            {
+                example.RunExample(domainId, sensorId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("RunExample exception: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
+            }
         }
     }
 }
