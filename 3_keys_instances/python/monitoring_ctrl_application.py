@@ -71,6 +71,11 @@ def monitor_lot_state(reader):
 
 
 # Exercise #4.4: Add monitor_temperature function
+def monitor_temperature(reader):
+    samples = reader.take()
+    for sample in samples:
+        if sample.info.valid and sample["degrees"] > 32:
+            print(f"Temperature high: {sample}")
 
 
 def run_example(domain_id, lots_to_process, sensor_id):
@@ -150,7 +155,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
         while lots_to_process is None or lots_processed < lots_to_process:
             # Dispatch will call the handlers associated to the WaitSet conditions
             # when they activate
-            waitset.dispatch(dds.Duration(10))  # Wait for up to 10s each time
+            waitset.dispatch(dds.Duration(4))  # Wait for up to 4s each time
     except KeyboardInterrupt:
         pass
 
