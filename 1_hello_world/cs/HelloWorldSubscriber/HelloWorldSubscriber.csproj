@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ConnextDds" Version="0.0.4" />
+    <PackageReference Include="Rti.ConnextDds" Version="0.0.1-*" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.20303.1" />
   </ItemGroup>
 
