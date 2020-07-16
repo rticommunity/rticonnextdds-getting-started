@@ -25,7 +25,7 @@ To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
 ```
-cd 3_keys_instances
+cd 1_hello_world
 rtiddsgen -convertToXml hello_world.idl
 ```
 

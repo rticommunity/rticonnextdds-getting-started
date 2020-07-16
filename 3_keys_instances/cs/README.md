@@ -45,7 +45,16 @@ dotnet run -p TemperingApplication
 ```
 
 From another command prompt, run:
-
 ```
 dotnet run -p MonitoringCtrlApplication
 ```
+
+You can run multiple copies of the tempering application on differet terminals:
+```
+dotnet run -p TemperingApplication -- -id 1
+```
+
+```
+dotnet run -p TemperingApplication -- -id 2
+```
+

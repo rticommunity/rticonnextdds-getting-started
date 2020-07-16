@@ -93,6 +93,8 @@ namespace KeyesInstances
             using var samples = reader.Take();
             foreach (var data in samples.ValidData)
             {
+                // A new exercise will show how to specify data filtering with
+                // a ContentFilteredTopic.
                 if (data.GetInt32Value("degrees") > 32)
                 {
                     Console.WriteLine($"Temperature high: {data}");

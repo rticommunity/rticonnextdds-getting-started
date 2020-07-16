@@ -25,7 +25,7 @@ To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
 ```
-cd 3_keys_instances
+cd 2_streaming_data
 rtiddsgen -convertToXml temperature.idl
 ```
 
@@ -48,5 +48,5 @@ dotnet run -p TemperatureSubscriber
 From another command prompt, run:
 
 ```
-dotnet run -p TemperaturePublisher
+dotnet run -p TemperaturePublisher -- --id <some string>
 ```

@@ -12,6 +12,7 @@
 
 using System;
 using System.Threading;
+using Rti.Dds.Core;
 using Rti.Dds.Domain;
 using Rti.Dds.Publication;
 using Rti.Dds.Topics;
@@ -27,11 +28,11 @@ namespace StreamingData
         /// <summary>
         /// Main function, receiving structured command-line arguments
         /// </summary>
-        /// <param name="sensorId">Identifies a sensor</param>
+        /// <param name="id">Identifies a sensor</param>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
         /// <param name="sampleCount">The number of data samples to publish</param>
         public static void Main(
-            string sensorId = "default_id",
+            string id = "default_id",
             int domainId = 0,
             int sampleCount = 10)
         {
@@ -64,7 +65,7 @@ namespace StreamingData
             for (int count = 0; count < sampleCount; count++)
             {
                 // Modify the data to be written here
-                sample.SetValue("sensor_id", sensorId);
+                sample.SetValue("sensor_id", id);
                 sample.SetValue("degrees", rand.Next(30, 33));
 
                 Console.WriteLine($"Writing ChocolateTemperature, count {count}");

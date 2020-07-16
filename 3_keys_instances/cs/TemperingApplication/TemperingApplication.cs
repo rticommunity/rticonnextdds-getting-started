@@ -49,6 +49,11 @@ namespace KeyesInstances
             {
                 // Modify the data to be written here
                 temperature.SetValue("sensor_id", sensorId);
+
+                // Currently we don't send above 32 degrees, to make the output
+                // in the MonitoringCtrlApplication more readable. Incrase the
+                // range here to see the temperature printed in the
+                // MonitoringCtrlApplication
                 temperature.SetValue("degrees", rand.Next(30, 33));
 
                 writer.Write(temperature);
@@ -164,8 +169,8 @@ namespace KeyesInstances
         /// Main function, receiving structured command-line arguments
         /// </summary>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sensorId">Identifies the sensor ID used in the example</param>
-        public static void Main(int domainId = 0, string sensorId = "default_id")
+        /// <param name="id">Identifies the sensor ID used in the example</param>
+        public static void Main(int domainId = 0, string id = "default_id")
         {
             var example = new TemperatureSubscriber();
 
@@ -179,7 +184,7 @@ namespace KeyesInstances
 
             try
             {
-                example.RunExample(domainId, sensorId);
+                example.RunExample(domainId, id);
             }
             catch (Exception ex)
             {
