@@ -87,6 +87,7 @@ namespace KeyesInstances
             return samplesRead;
         }
 
+        // Exercise #4.4: Add monitor_temperature function
         private void MonitorTemperature(DataReader<Temperature> reader)
         {
             using var samples = reader.Take();
@@ -163,6 +164,8 @@ namespace KeyesInstances
             // Create a WaitSet and attach the StatusCondition
             WaitSet waitset = new WaitSet();
             waitset.AttachCondition(lotStateStatusCondition);
+
+            // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
             waitset.AttachCondition(temperatureStatusCondition);
 
             var startLotTask = Task.Run(() => PublishStartLot(lotStateWriter, lotsToProcess));
