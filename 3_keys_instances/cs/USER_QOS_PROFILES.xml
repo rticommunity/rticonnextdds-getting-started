@@ -45,22 +45,6 @@
                      base_name="BuiltinQosLib::Generic.StrictReliable"
                      is_default_qos="true">
 
-            <!-- QoS specified to override the QoS in the base profile.
-                 Configures the DataWriter in the example code. -->
-            <datawriter_qos>
-                <publication_name>
-                    <name>DataWriter</name>
-                </publication_name>
-            </datawriter_qos>
-
-            <!-- QoS specified to override the QoS in the base profile. 
-                 Configures the DataReader in the example code. -->
-            <datareader_qos>
-                <subscription_name>
-                    <name>DataReader</name>
-                </subscription_name>
-            </datareader_qos>
-
             <!-- QoS specified to override the QoS in the base profile. 
                  Configures the DomainParticipant in the example code. -->
             <participant_qos>
