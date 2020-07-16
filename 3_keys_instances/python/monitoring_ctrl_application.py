@@ -63,7 +63,9 @@ def monitor_lot_state(reader):
         else:
             # Exercise #3.2: Detect that a lot is complete by checking for
             # the disposed state.
-            pass
+            if sample.info.state == dds.InstanceState.not_alive_disposed():
+                key_holder = reader.key_value(sample.info.instance_handle)
+                print(f"[lot_id: {key_holder['lot_id']} is completed]")
 
     return samples_read
 
@@ -83,6 +85,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
     topic = dds.DynamicData.Topic(participant, "ChocolateLotState", CHOCOLATE_LOT_TYPE)
 
     # Exercise #4.1: Add a Topic for Temperature to this application
+    temperature_topic = dds.DynamicData.Topic(
+        participant, "ChocolateTemperature", provider.type("Temperature")
+    )
 
     # A Publisher allows an application to create one or more DataWriters
     # Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -100,6 +105,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
     # DataReader QoS is configured in USER_QOS_PROFILES.xml
     reader = dds.DynamicData.DataReader(subscriber, topic)
 
+    # Exercise #4.2: Add a DataReader for Temperature to this application
+    temperature_reader = dds.DynamicData.DataReader(subscriber, temperature_topic)
+
     # Obtain the DataReader's Status Condition
     status_condition = dds.StatusCondition(reader)
     # Enable the 'data available' status.
@@ -116,10 +124,22 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     status_condition.handler(handler)
 
+    temperature_status_condition = dds.StatusCondition(reader)
+
+    temperature_status_condition.enabled_statuses = dds.StatusMask.data_available()
+
+    def temp_handler(_):
+        nonlocal temperature_reader
+        monitor_lot_state(temperature_reader)
+
+    temperature_status_condition.handler(temp_handler)
+
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()
     waitset += status_condition
+
     # Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
+    waitset += temperature_status_condition
 
     # Create a thread to periodically publish the temperature
     start_lot_thread = threading.Thread(

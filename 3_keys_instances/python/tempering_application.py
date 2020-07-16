@@ -82,6 +82,8 @@ def process_lot(lot_state_reader, lot_state_writer):
             # Exercise #3.1: Since this is the last step in processing,
             # notify the monitoring application that the lot is complete
             # using a dispose
+            instance_handle = lot_state_writer.lookup_instance(updated_state)
+            lot_state_writer.dispose_insance(instance_handle)
 
     # The LoanedSamples destructor returns the loan
 
