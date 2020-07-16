@@ -60,5 +60,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-!**/cs/**/*.csproj
-!**/cs/**/*.sln
+!**/csharp/**/*.csproj
+!**/csharp/**/*.sln
