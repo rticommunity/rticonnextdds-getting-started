@@ -6,7 +6,7 @@ and cannot be used in production.**
 This code follows the "Introduction to Keys and Instances" chapter of the
 [RTI Connext DDS Getting Started Guide](https://community.rti.com/static/documentation/connext-dds/6.0.1/doc/manuals/connext_dds/getting_started/index.html).
 Currently that guide walks you through the C++ examples, but you can follow it to
-understand the example and the DDS concepts it describes.
+understand what the example does and the DDS concepts it demonstrates.
 
 ## Setup
 This example requires a *Connext DDS* installation to run the *RTI Code Generator (rtiddsgen)* (see next section). The *RTI Connext DDS C# API Preview* library is
