@@ -63,7 +63,7 @@ def monitor_lot_state(reader):
         else:
             # Exercise #3.2: Detect that a lot is complete by checking for
             # the disposed state.
-            if sample.info.state == dds.InstanceState.not_alive_disposed():
+            if sample.info.state.instance_state == dds.InstanceState.not_alive_disposed():
                 key_holder = reader.key_value(sample.info.instance_handle)
                 print(f"[lot_id: {key_holder['lot_id']} is completed]")
 
