@@ -25,12 +25,11 @@
 using namespace application;
 
 void publish_start_lot(
-        dds::pub::DataWriter<ChocolateLotState>& writer,
+        dds::pub::DataWriter<ChocolateLotState>& lot_state_writer,
         unsigned int& lots_to_process)
 {
     ChocolateLotState sample;
-    for (unsigned int count = 0;
-         !shutdown_requested && count < lots_to_process;
+    for (unsigned int count = 0; !shutdown_requested && count < lots_to_process;
          count++) {
         // Set the values for a chocolate lot that is going to be sent to wait
         // at the tempering station
@@ -40,11 +39,11 @@ void publish_start_lot(
 
         std::cout << std::endl << "Starting lot: " << std::endl;
         std::cout << "[lot_id: " << sample.lot_id()
-                  << " next_station: " << sample.next_station()
-                  << "]" << std::endl;
+                  << " next_station: " << sample.next_station() << "]"
+                  << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
-        writer.write(sample);
+        lot_state_writer.write(sample);
 
         rti::util::sleep(dds::core::Duration(10));
     }
@@ -76,10 +75,7 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
 // Exercise #4.4: Add monitor_temperature function
 
 
-void run_example(
-        unsigned int domain_id,
-        unsigned int lots_to_process,
-        const std::string& sensor_id)
+void run_example(unsigned int domain_id, unsigned int lots_to_process)
 {
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
@@ -99,7 +95,7 @@ void run_example(
 
     // This DataWriter writes data on Topic "ChocolateLotState"
     // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    dds::pub::DataWriter<ChocolateLotState> writer(publisher, topic);
+    dds::pub::DataWriter<ChocolateLotState> lot_state_writer(publisher, topic);
 
     // A Subscriber allows an application to create one or more DataReaders
     // Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -107,32 +103,34 @@ void run_example(
 
     // Create DataReader of Topic "ChocolateLotState".
     // DataReader QoS is configured in USER_QOS_PROFILES.xml
-    dds::sub::DataReader<ChocolateLotState> reader(subscriber, topic);
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(subscriber, topic);
     // Exercise #4.2: Add a DataReader for Temperature to this application
 
     // Obtain the DataReader's Status Condition
-    dds::core::cond::StatusCondition status_condition(reader);
+    dds::core::cond::StatusCondition lot_state_status_condition(
+            lot_state_reader);
 
     // Enable the 'data available' status.
-    status_condition.enabled_statuses(
+    lot_state_status_condition.enabled_statuses(
             dds::core::status::StatusMask::data_available());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
     unsigned int lots_processed = 0;
-    status_condition.extensions().handler([&reader, &lots_processed]() {
-        lots_processed += monitor_lot_state(reader);
-    });
+   lot_state_status_condition.extensions().handler(
+            [&lot_state_reader, &lots_processed]() {
+                lots_processed += monitor_lot_state(lot_state_reader);
+            });
 
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
-    waitset += status_condition;
+    waitset += lot_state_status_condition;
     // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
 
     // Create a thread to periodically start new chocolate lots
     std::thread start_lot_thread(
             publish_start_lot,
-            std::ref(writer),
+            std::ref(lot_state_writer),
             std::ref(lots_to_process));
 
     while (!shutdown_requested && lots_processed < lots_to_process) {
@@ -159,10 +157,7 @@ int main(int argc, char *argv[])
     rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
-        run_example(
-                arguments.domain_id,
-                arguments.sample_count,
-                arguments.sensor_id);
+        run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
         std::cerr << "Exception in run_example(): " << ex.what() << std::endl;

@@ -45,7 +45,7 @@ void publish_start_lot(
         // Send an update to station that there is a lot waiting for tempering
         lot_state_writer.write(sample);
 
-        rti::util::sleep(dds::core::Duration(8));
+        rti::util::sleep(dds::core::Duration(10));
     }
 }
 
@@ -97,10 +97,7 @@ void monitor_temperature(dds::sub::DataReader<Temperature>& reader)
    }
 }
 
-void run_example(
-        unsigned int domain_id,
-        unsigned int lots_to_process,
-        const std::string& sensor_id)
+void run_example(unsigned int domain_id, unsigned int lots_to_process)
 {
     // Exercise #1.1: Add QoS provider
 
@@ -135,9 +132,7 @@ void run_example(
     // Create DataReader of Topic "ChocolateLotState".
     // Exercise #1.3: Update the lot_state_reader and temperature_reader
     // to use correct QoS
-    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
-            subscriber,
-            topic);
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(subscriber, topic);
 
     // Add a DataReader for Temperature to this application
     dds::sub::DataReader<Temperature> temperature_reader(
@@ -180,7 +175,7 @@ void run_example(
     // Add the new DataReader's StatusCondition to the Waitset
     waitset += temperature_status_condition;
 
-    // Create a thread to periodically publish the temperature
+    // Create a thread to periodically start new chocolate lots
     std::thread start_lot_thread(
             publish_start_lot,
             std::ref(lot_state_writer),
@@ -210,10 +205,7 @@ int main(int argc, char *argv[])
     rti::config::Logger::instance().verbosity(arguments.verbosity);
 
     try {
-        run_example(
-                arguments.domain_id,
-                arguments.sample_count,
-                arguments.sensor_id);
+        run_example(arguments.domain_id, arguments.sample_count);
     } catch (const std::exception& ex) {
         // This will catch DDS exceptions
         std::cerr << "Exception in run_example(): " << ex.what() << std::endl;

@@ -30,8 +30,8 @@ using namespace application;
 // 3) After "processing" the lot, publishes the lot state
 
 void publish_temperature(
-        dds::pub::DataWriter<Temperature>& temperature_writer,
-        const std::string& sensor_id)
+        dds::pub::DataWriter<Temperature> temperature_writer,
+        const std::string sensor_id)
 {
     // Create temperature sample for writing
     Temperature temperature;
@@ -86,7 +86,8 @@ void process_lot(
 template <typename T>
 void on_requested_incompatible_qos(dds::sub::DataReader<T>& reader)
 {
-   dds::core::policy::QosPolicyId incompatible_policy = 
+    using namespace dds::core::policy;
+    QosPolicyId incompatible_policy =
         reader.requested_incompatible_qos_status().last_policy_id();
     // Exercise #3.1 add a message to print when this DataReader discovers an
     // incompatible DataWriter
@@ -115,11 +116,11 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             CHOCOLATE_LOT_STATE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
-    // Creat Publisher with default QoS 
+    // Create Publisher with default QoS
     dds::pub::Publisher publisher(participant);
 
     // Create DataWriter of Topic "ChocolateTemperature"
-    // using ChocolateTemperatureProfile QoS profile
+    // using ChocolateTemperatureProfile QoS profile for Streaming Data
     dds::pub::DataWriter<Temperature> temperature_writer(
             publisher,
             temperature_topic,
@@ -127,7 +128,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
                     "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
 
     // Create DataWriter of Topic "ChocolateLotState"
-    // using ChocolateLotStateProfile QoS profile
+    // using ChocolateLotStateProfile QoS profile for State Data
     dds::pub::DataWriter<ChocolateLotState> lot_state_writer(
             publisher,
             lot_state_topic,
@@ -138,7 +139,7 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
-    // using ChocolateTemperatureProfile QoS profile
+    // using ChocolateLotStateProfile QoS profile for State Data
     dds::sub::DataReader<ChocolateLotState> lot_state_reader(
             subscriber,
             lot_state_topic,
@@ -148,23 +149,25 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition reader_status_condition(lot_state_reader);
 
+    // Contains statuses that entities can be notified about
+    using dds::core::status::StatusMask;
+
     // Enable the 'data available' and 'requested incompatible qos' statuses
     reader_status_condition.enabled_statuses(
-            dds::core::status::StatusMask::data_available()  
-            | dds::core::status::StatusMask::requested_incompatible_qos());
+            StatusMask::data_available()
+            | StatusMask::requested_incompatible_qos());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
     reader_status_condition.extensions().handler([&lot_state_reader,
                                                   &lot_state_writer]() {
-        if ((lot_state_reader.status_changes() 
-                & dds::core::status::StatusMask::data_available())
-                != dds::core::status::StatusMask::none()) {
+        if ((lot_state_reader.status_changes() & StatusMask::data_available())
+                != StatusMask::none()) {
             process_lot(lot_state_reader, lot_state_writer);
         }
         if ((lot_state_reader.status_changes()
-                & dds::core::status::StatusMask::requested_incompatible_qos())
-                != dds::core::status::StatusMask::none()) {
+                & StatusMask::requested_incompatible_qos())
+                != StatusMask::none()) {
             on_requested_incompatible_qos(lot_state_reader);
         }
     });
@@ -178,8 +181,8 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
               << " starting" << std::endl;              
     std::thread temperature_thread(
             publish_temperature,
-            std::ref(temperature_writer),
-            std::ref(sensor_id));
+            temperature_writer,
+            sensor_id);
 
     while (!shutdown_requested) {
         // Wait for ChocolateLotState

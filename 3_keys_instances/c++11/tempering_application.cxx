@@ -30,8 +30,8 @@ using namespace application;
 // 3) After "processing" the lot, publishes the lot state
 
 void publish_temperature(
-        dds::pub::DataWriter<Temperature>& writer,
-        const std::string& sensor_id)
+        dds::pub::DataWriter<Temperature> temperature_writer,
+        const std::string sensor_id)
 {
     // Create temperature sample for writing
     Temperature temperature;
@@ -40,7 +40,7 @@ void publish_temperature(
         temperature.sensor_id(sensor_id);
         temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
 
-        writer.write(temperature);
+        temperature_writer.write(temperature);
 
         rti::util::sleep(dds::core::Duration::from_millisecs(100));
     }
@@ -143,8 +143,8 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
               << " starting" << std::endl;
     std::thread temperature_thread(
             publish_temperature,
-            std::ref(temperature_writer),
-            std::ref(sensor_id));
+            temperature_writer,
+            sensor_id);
 
     while (!shutdown_requested) {
         // Wait for ChocolateLotState

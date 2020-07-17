@@ -78,7 +78,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                     static_cast<rti::config::Verbosity::inner_enum>(
                             atoi(argv[arg_processing + 1]));
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-id") == 0
+        } else if (strcmp(argv[arg_processing], "-i") == 0
                 || strcmp(argv[arg_processing], "--sensor-id") == 0) {
             sensor_id = argv[arg_processing + 1];
             arg_processing += 2;
@@ -104,7 +104,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                     "                               cleanly shutting down. \n"
                     "                               Default: infinite\n"
                     "                               cleanly shutting down. \n"
-                    "    -id, --sensor-id   <int>   Unique ID of temperature sensor\n"\
+                    "    -i, --sensor-id   <string> Unique ID of temperature sensor.\n"\
                     "    -v, --verbosity    <int>   How much debugging output to show.\n"\
                     "                               Range: 0-5 \n"
                     "                               Default: 0"
