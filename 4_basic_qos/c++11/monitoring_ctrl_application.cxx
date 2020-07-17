@@ -25,8 +25,8 @@
 using namespace application;
 
 void publish_start_lot(
-        dds::pub::DataWriter<ChocolateLotState>& lot_state_writer,
-        unsigned int& lots_to_process)
+        dds::pub::DataWriter<ChocolateLotState> lot_state_writer,
+        unsigned int lots_to_process)
 {
     ChocolateLotState sample;
     for (unsigned int count = 0; !shutdown_requested && count < lots_to_process;
@@ -178,8 +178,8 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     // Create a thread to periodically start new chocolate lots
     std::thread start_lot_thread(
             publish_start_lot,
-            std::ref(lot_state_writer),
-            std::ref(lots_to_process));
+            lot_state_writer,
+            lots_to_process);
 
     while (!shutdown_requested && lots_processed < lots_to_process) {
         // Dispatch will call the handlers associated to the WaitSet conditions
