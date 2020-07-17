@@ -23,6 +23,9 @@ CHOCOLATE_LOT_TYPE = provider.type("ChocolateLotState")
 LOT_STATUS_KIND_TYPE = provider.type("LotStatusKind")
 STATION_KIND_TYPE = provider.type("StationKind")
 
+CHOCOLATE_LOT_STATE_TOPIC = "ChocolateLotState"
+CHOCOLATE_TEMPERATURE_TOPIC = "ChocolateTemperature"
+
 
 def publish_start_lot(writer, lots_to_process):
     sample = dds.DynamicData(CHOCOLATE_LOT_TYPE)
@@ -87,11 +90,11 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic with type
     # ChocolateLotState.  Topic name is a constant defined in the XML file.
-    topic = dds.DynamicData.Topic(participant, "ChocolateLotState", CHOCOLATE_LOT_TYPE)
+    topic = dds.DynamicData.Topic(participant, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_LOT_TYPE)
 
     # Exercise #4.1: Add a Topic for Temperature to this application
     temperature_topic = dds.DynamicData.Topic(
-        participant, "ChocolateTemperature", provider.type("Temperature")
+        participant, CHOCOLATE_TEMPERATURE_TOPIC, provider.type("Temperature")
     )
 
     # A Publisher allows an application to create one or more DataWriters

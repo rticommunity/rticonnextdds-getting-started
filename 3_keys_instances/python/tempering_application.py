@@ -27,6 +27,10 @@ STATION_KIND_TYPE = provider.type("StationKind")
 LOT_STATUS_KIND_TYPE = provider.type("LotStatusKind")
 
 
+CHOCOLATE_LOT_STATE_TOPIC = "ChocolateLotState"
+CHOCOLATE_TEMPERATURE_TOPIC = "ChocolateTemperature"
+
+
 # Tempering application:
 # 1) Publishes the temperature
 # 2) Subscribes to the lot state
@@ -83,7 +87,7 @@ def process_lot(lot_state_reader, lot_state_writer):
             # notify the monitoring application that the lot is complete
             # using a dispose
             instance_handle = lot_state_writer.lookup_instance(updated_state)
-            lot_state_writer.dispose_insance(instance_handle)
+            lot_state_writer.dispose_instance(instance_handle)
 
     # The LoanedSamples destructor returns the loan
 
@@ -97,10 +101,10 @@ def run_example(domain_id, sensor_id):
     # A Topic has a name and a datatype. Create Topics.
     # Topic names are constants defined in the XML file.
     temperature_topic = dds.DynamicData.Topic(
-        participant, "CHOCOLATE_TEMPERATURE_TOPIC", TEMPERATURE_TYPE
+        participant, CHOCOLATE_TEMPERATURE_TOPIC, TEMPERATURE_TYPE
     )
     lot_state_topic = dds.DynamicData.Topic(
-        participant, "CHOCOLATE_LOT_STATE_TOPIC", CHOCOLATE_LOT_TYPE
+        participant, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_LOT_TYPE
     )
 
     # A Publisher allows an application to create one or more DataWriters
