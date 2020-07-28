@@ -21,7 +21,6 @@ build/
 
 # output files from Code Generator
 README_*.txt
-*.xml
 
 # C output files from Code Generator
 *Impl.*
