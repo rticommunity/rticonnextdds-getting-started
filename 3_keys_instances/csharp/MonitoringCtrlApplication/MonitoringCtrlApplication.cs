@@ -23,7 +23,7 @@ using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
-namespace KeyesInstances
+namespace KeysInstances
 {
     // This Preview Release doesn't support IDL types yet. The example uses
     // XML-defined dynamically-loaded types. Topics for such types use DynamicData

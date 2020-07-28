@@ -22,7 +22,7 @@ using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
-namespace KeyesInstances
+namespace KeysInstances
 {
     // This Preview Release doesn't support IDL types yet. The example uses
     // XML-defined dynamically-loaded types. Topics for such types use DynamicData
@@ -51,7 +51,7 @@ namespace KeyesInstances
                 temperature.SetValue("sensor_id", sensorId);
 
                 // Currently we don't send above 32 degrees, to make the output
-                // in the MonitoringCtrlApplication more readable. Incrase the
+                // in the MonitoringCtrlApplication more readable. Increase the
                 // range here to see the temperature printed in the
                 // MonitoringCtrlApplication
                 temperature.SetValue("degrees", rand.Next(30, 33));

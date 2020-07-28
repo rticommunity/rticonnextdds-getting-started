@@ -61,7 +61,7 @@ namespace HelloWorld
 
             // A Topic has a name and a datatype. Create dynamically-typed
             // Topic named "HelloWorld Topic" with the type definition of
-            // "HelloWorld" in hell_world.xml. To get the type we use a QosProvider
+            // "HelloWorld" in hello_world.xml. To get the type we use a QosProvider
             var provider = new QosProvider("../hello_world.xml");
             Topic<DynamicData> topic = participant.CreateTopic(
                 "Example HelloWorld",
