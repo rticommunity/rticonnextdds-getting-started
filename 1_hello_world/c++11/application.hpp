@@ -36,9 +36,9 @@ inline void setup_signal_handlers()
 }
 
 enum class ParseReturn {
-    PARSE_RETURN_OK,
-    PARSE_RETURN_FAILURE,
-    PARSE_RETURN_EXIT
+    ok,
+    failure,
+    exit
 };
 
 struct ApplicationArguments {
@@ -53,7 +53,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
 {
     int arg_processing = 1;
     bool show_usage = false;
-    ParseReturn parse_result = ParseReturn::PARSE_RETURN_OK;
+    ParseReturn parse_result = ParseReturn::ok;
     unsigned int domain_id = 0;
     unsigned int sample_count = (std::numeric_limits<unsigned int>::max)();
     rti::config::Verbosity verbosity;
@@ -77,12 +77,12 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                 || strcmp(argv[arg_processing], "--help") == 0) {
             std::cout << "Example application." << std::endl;
             show_usage = true;
-            parse_result = ParseReturn::PARSE_RETURN_EXIT;
+            parse_result = ParseReturn::exit;
             break;
         } else {
             std::cout << "Bad parameter." << std::endl;
             show_usage = true;
-            parse_result = ParseReturn::PARSE_RETURN_FAILURE;
+            parse_result = ParseReturn::failure;
             break;
         }
     }
