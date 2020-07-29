@@ -37,7 +37,7 @@ namespace KeysInstances
         private readonly Random rand = new Random();
         private readonly Utils.ChocolateFactoryTypes types =
             new Utils.ChocolateFactoryTypes();
-        private bool shutdownRequested = false;
+        private bool shutdownRequested;
 
         private void PublishTemperature(
             DataWriter<Temperature> writer,
@@ -95,7 +95,7 @@ namespace KeysInstances
             }
         }
 
-        private void RunExample(int domainId = 0, string sensorId = "default_id")
+        private void RunExample(int domainId, string sensorId)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -167,10 +167,12 @@ namespace KeysInstances
 
         /// <summary>
         /// Main function, receiving structured command-line arguments
+        /// via the System.Console.DragonFruit package.
+        /// For example: dotnet run -- --sensor-id mySensor
         /// </summary>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="id">Identifies the sensor ID used in the example</param>
-        public static void Main(int domainId = 0, string id = "default_id")
+        /// <param name="sensorId">Identifies the sensor ID used in the example</param>
+        public static void Main(int domainId = 0, string sensorId = "default_id")
         {
             var example = new TemperatureSubscriber();
 
@@ -184,7 +186,7 @@ namespace KeysInstances
 
             try
             {
-                example.RunExample(domainId, id);
+                example.RunExample(domainId, sensorId);
             }
             catch (Exception ex)
             {

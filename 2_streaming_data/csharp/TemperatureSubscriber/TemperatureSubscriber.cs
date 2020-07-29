@@ -24,8 +24,10 @@ namespace StreamingData
     /// <summary>
     /// Example subscriber application
     /// </summary>
-    public static class TemperatureSubscriber
+    public class TemperatureSubscriber
     {
+        private bool shutdownRequested;
+
         private static int ProcessData(DataReader<DynamicData> reader)
         {
             // Take all samples. Samples are loaned to application, loan is
@@ -41,12 +43,7 @@ namespace StreamingData
             return samplesRead;
         }
 
-        /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to publish</param>
-        public static void Main(int domainId = 0, int sampleCount = 10)
+        private void RunExample(int domainId, int sampleCount)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -87,12 +84,43 @@ namespace StreamingData
             // Create a WaitSet and attach the StatusCondition
             var waitset = new WaitSet();
             waitset.AttachCondition(statusCondition);
-            while (samplesRead < sampleCount)
+            while (samplesRead < sampleCount && !shutdownRequested)
             {
                 // Dispatch will call the handlers associated to the WaitSet
                 // conditions when they activate
                 Console.WriteLine("ChocolateTemperature subscriber sleeping for 4 sec...");
                 waitset.Dispatch(Duration.FromSeconds(4));
+            }
+        }
+
+
+        /// <summary>
+        /// Main function, receiving structured command-line arguments
+        /// via the System.Console.DragonFruit package.
+        /// For example: dotnet run -- --domain-id 54 --sample-count 5
+        /// </summary>
+        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
+        /// <param name="sampleCount">The number of data samples to publish</param>
+        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
+        {
+            var example = new TemperatureSubscriber();
+
+            // Setup signal handler
+            Console.CancelKeyPress += (_, eventArgs) =>
+            {
+                Console.WriteLine("Shuting down...");
+                eventArgs.Cancel = true; // let the application shutdown gracefully
+                example.shutdownRequested = true;
+            };
+
+            try
+            {
+                example.RunExample(domainId, sampleCount);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("RunExample exception: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
         }
     }

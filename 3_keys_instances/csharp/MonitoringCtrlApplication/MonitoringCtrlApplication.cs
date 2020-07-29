@@ -37,7 +37,7 @@ namespace KeysInstances
     {
         private readonly Utils.ChocolateFactoryTypes types =
             new Utils.ChocolateFactoryTypes();
-        private bool shutdownRequested = false;
+        private bool shutdownRequested;
 
         private void PublishStartLot(
             DataWriter<ChocolateLotState> writer,
@@ -103,7 +103,6 @@ namespace KeysInstances
         }
 
         private void RunExample(
-            string sensorId = "default_id",
             int domainId = 0,
             uint lotsToProcess = 10)
         {
@@ -182,14 +181,14 @@ namespace KeysInstances
 
         /// <summary>
         /// Main function, receiving structured command-line arguments
+        /// via the System.Console.DragonFruit package.
+        /// For example: dotnet run -- --domain-id 54 --lots-to-process 5
         /// </summary>
-        /// <param name="sensorId">Identifies a sensor</param>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
         /// <param name="lotsToProcess">The number of data samples to publish</param>
         public static void Main(
-            string sensorId = "default_id",
             int domainId = 0,
-            uint lotsToProcess = 10)
+            uint lotsToProcess = int.MaxValue)
         {
             var example = new MonitoringCtrlApplication();
 
@@ -203,7 +202,7 @@ namespace KeysInstances
 
             try
             {
-                example.RunExample(sensorId, domainId, lotsToProcess);
+                example.RunExample(domainId, lotsToProcess);
             }
             catch(Exception ex)
             {

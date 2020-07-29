@@ -42,12 +42,13 @@ namespace HelloWorld
         }
 
         /// <summary>
-        /// Main function, receiving structured command-line arguments, for example:
-        /// dotnet run -- --domain-id 54 --sample-count 5
+        /// Main function, receiving structured command-line arguments
+        /// via the System.Console.DragonFruit package.
+        /// For example: dotnet run -- --domain-id 54 --sample-count 5
         /// </summary>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
         /// <param name="sampleCount">The number of data samples to receive before exiting</param>
-        public static void Main(int domainId = 0, int sampleCount = 10)
+        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
