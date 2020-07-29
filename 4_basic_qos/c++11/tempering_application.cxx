@@ -73,20 +73,38 @@ void process_lot(
             // "Processing" the lot.
             rti::util::sleep(dds::core::Duration(5));
 
-            // Exercise #3.1: Since this is the last step in processing,
+            // Since this is the last step in processing,
             // notify the monitoring application that the lot is complete
             // using a dispose
-
+            dds::core::InstanceHandle instance_handle =
+                    lot_state_writer.lookup_instance(updated_state);
+            lot_state_writer.dispose_instance(instance_handle);
         }
     }
 }  // The LoanedSamples destructor returns the loan
 
+template <typename T>
+void on_requested_incompatible_qos(dds::sub::DataReader<T>& reader)
+{
+    using namespace dds::core::policy;
+    QosPolicyId incompatible_policy =
+        reader.requested_incompatible_qos_status().last_policy_id();
+    // Exercise #3.1 add a message to print when this DataReader discovers an
+    // incompatible DataWriter
+}
+
 void run_example(unsigned int domain_id, const std::string& sensor_id)
 {
+    // Loads the QoS from the qos_profiles.xml file. 
+    dds::core::QosProvider qos_provider("./qos_profiles.xml");
+
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
-    dds::domain::DomainParticipant participant(domain_id);
+    // Uses TemperingApplication QoS profile to set participant name.
+    dds::domain::DomainParticipant participant(
+                domain_id,
+                qos_provider.participant_qos(
+                            "ChocolateFactoryLibrary::TemperingApplication"));
 
     // A Topic has a name and a datatype. Create Topics.
     // Topic names are constants defined in the IDL file.
@@ -98,49 +116,69 @@ void run_example(unsigned int domain_id, const std::string& sensor_id)
             CHOCOLATE_LOT_STATE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
-    // Publisher QoS is configured in USER_QOS_PROFILES.xml
+    // Create Publisher with default QoS
     dds::pub::Publisher publisher(participant);
 
-    // Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
-    // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+    // Create DataWriter of Topic "ChocolateTemperature"
+    // using ChocolateTemperatureProfile QoS profile for Streaming Data
     dds::pub::DataWriter<Temperature> temperature_writer(
             publisher,
-            temperature_topic);
+            temperature_topic,
+            qos_provider.datawriter_qos(
+                    "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
+
+    // Create DataWriter of Topic "ChocolateLotState"
+    // using ChocolateLotStateProfile QoS profile for State Data
     dds::pub::DataWriter<ChocolateLotState> lot_state_writer(
             publisher,
-            lot_state_topic);
+            lot_state_topic,
+            qos_provider.datawriter_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
     // A Subscriber allows an application to create one or more DataReaders
-    // Subscriber QoS is configured in USER_QOS_PROFILES.xml
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
-    // DataReader QoS is configured in USER_QOS_PROFILES.xml
+    // using ChocolateLotStateProfile QoS profile for State Data
     dds::sub::DataReader<ChocolateLotState> lot_state_reader(
             subscriber,
-            lot_state_topic);
+            lot_state_topic,
+            qos_provider.datareader_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
     // Obtain the DataReader's Status Condition
-    dds::core::cond::StatusCondition status_condition(lot_state_reader);
+    dds::core::cond::StatusCondition reader_status_condition(lot_state_reader);
 
-    // Enable the 'data available' status.
-    status_condition.enabled_statuses(
-            dds::core::status::StatusMask::data_available());
+    // Contains statuses that entities can be notified about
+    using dds::core::status::StatusMask;
+
+    // Enable the 'data available' and 'requested incompatible qos' statuses
+    reader_status_condition.enabled_statuses(
+            StatusMask::data_available()
+            | StatusMask::requested_incompatible_qos());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
-    status_condition.extensions().handler(
-            [&lot_state_reader, &lot_state_writer]() {
-                    process_lot(lot_state_reader, lot_state_writer);
+    reader_status_condition.extensions().handler([&lot_state_reader,
+                                                  &lot_state_writer]() {
+        if ((lot_state_reader.status_changes() & StatusMask::data_available())
+                != StatusMask::none()) {
+            process_lot(lot_state_reader, lot_state_writer);
+        }
+        if ((lot_state_reader.status_changes()
+                & StatusMask::requested_incompatible_qos())
+                != StatusMask::none()) {
+            on_requested_incompatible_qos(lot_state_reader);
+        }
     });
 
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
-    waitset += status_condition;
+    waitset += reader_status_condition;
 
     // Create a thread to periodically write the temperature
-    std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id
-              << " starting" << std::endl;
+    std::cout << "ChocolateTemperature Sensor with ID: " << sensor_id 
+              << " starting" << std::endl;              
     std::thread temperature_thread(
             publish_temperature,
             temperature_writer,

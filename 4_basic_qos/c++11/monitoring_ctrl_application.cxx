@@ -63,23 +63,47 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
             std::cout << sample.data() << std::endl;
             samples_read++;
         } else {
-            // Exercise #3.2: Detect that a lot is complete by checking for
+            // Detect that a lot is complete by checking for
             // the disposed state.
-
+            if (sample.info().state().instance_state()
+                    == dds::sub::all::InstanceState::not_alive_disposed()) {
+                ChocolateLotState key_holder;
+                // Fills in only the key field values associated with the
+                // instance
+                reader.key_value(key_holder, sample.info().instance_handle());
+                std::cout << "[lot_id: " << key_holder.lot_id()
+                            << " is completed]" << std::endl;
+            }
         }
     }
 
     return samples_read;
 }
 
-// Exercise #4.4: Add monitor_temperature function
+// Add monitor_temperature function
+void monitor_temperature(dds::sub::DataReader<Temperature>& reader)
+{
+   // Take all samples.  Samples are loaned to application, loan is
+   // returned when LoanedSamples destructor called.
+   dds::sub::LoanedSamples<Temperature> samples = reader.take();
 
+   // Receive updates from stations about the state of current lots
+   for (const auto& sample : samples) {
+       if (sample.info().valid()) {
+           if (sample.data().degrees() > 32) {
+               std::cout << "Temperature high: " << sample.data() << std::endl;
+           }
+       }
+   }
+}
 
 void run_example(unsigned int domain_id, unsigned int lots_to_process)
 {
+    // Exercise #1.1: Add QoS provider
+
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
+    // Exercise #1.2: Load DomainParticipant QoS profile
     dds::domain::DomainParticipant participant(domain_id);
 
     // A Topic has a name and a datatype. Create a Topic with type
@@ -87,14 +111,18 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     dds::topic::Topic<ChocolateLotState> topic(
             participant,
             CHOCOLATE_LOT_STATE_TOPIC);
-    // Exercise #4.1: Add a Topic for Temperature to this application
+    // Add a Topic for Temperature to this application
+    dds::topic::Topic<Temperature> temperature_topic(
+            participant,
+            CHOCOLATE_TEMPERATURE_TOPIC);
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::Publisher publisher(participant);
 
     // This DataWriter writes data on Topic "ChocolateLotState"
-    // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+    // Exercise #4.1: Load ChocolateLotState DataWriter QoS profile after
+    // debugging incompatible QoS
     dds::pub::DataWriter<ChocolateLotState> lot_state_writer(publisher, topic);
 
     // A Subscriber allows an application to create one or more DataReaders
@@ -102,9 +130,28 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
-    // DataReader QoS is configured in USER_QOS_PROFILES.xml
+    // Exercise #1.3: Update the lot_state_reader and temperature_reader
+    // to use correct QoS
     dds::sub::DataReader<ChocolateLotState> lot_state_reader(subscriber, topic);
-    // Exercise #4.2: Add a DataReader for Temperature to this application
+
+    // Add a DataReader for Temperature to this application
+    dds::sub::DataReader<Temperature> temperature_reader(
+            subscriber,
+            temperature_topic);
+    // Obtain the DataReader's Status Condition
+    dds::core::cond::StatusCondition temperature_status_condition(
+            temperature_reader);
+
+    // Enable the 'data available' status.
+    temperature_status_condition.enabled_statuses(
+            dds::core::status::StatusMask::data_available());
+
+    // Associate a handler with the status condition. This will run when the
+    // condition is triggered, in the context of the dispatch call (see below)
+    temperature_status_condition.extensions().handler(
+                [&temperature_reader, &temperature_status_condition]() {
+            monitor_temperature(temperature_reader);
+    });
 
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition lot_state_status_condition(
@@ -117,15 +164,16 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
     unsigned int lots_processed = 0;
-   lot_state_status_condition.extensions().handler(
+    lot_state_status_condition.extensions().handler(
             [&lot_state_reader, &lots_processed]() {
-                lots_processed += monitor_lot_state(lot_state_reader);
-            });
+        lots_processed += monitor_lot_state(lot_state_reader);
+    });
 
     // Create a WaitSet and attach the StatusCondition
     dds::core::cond::WaitSet waitset;
     waitset += lot_state_status_condition;
-    // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
+    // Add the new DataReader's StatusCondition to the Waitset
+    waitset += temperature_status_condition;
 
     // Create a thread to periodically start new chocolate lots
     std::thread start_lot_thread(
