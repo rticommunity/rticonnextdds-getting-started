@@ -40,11 +40,12 @@ def run_example(domain_id, sample_count, sensor_id):
     # Create a DomainParticipant with default Qos
     participant = dds.DomainParticipant(domain_id)
 
-
     # A Topic has a name and a datatype. Create a Topic named
     # "ChocolateTemperature" with type Temperature
     provider_type = dds.QosProvider(FILE).type("Temperature")
-    topic = dds.DynamicData.Topic(participant, "ChocolateTemperature", provider_type)
+    topic = dds.DynamicData.Topic(
+        participant, "ChocolateTemperature", provider_type
+    )
 
     # A Subscriber allows an application to create one or more DataReaders
     # Subscriber QoS is configured in USER_QOS_PROFILES.xml

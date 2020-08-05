@@ -39,7 +39,9 @@ def publish_start_lot(writer, lots_to_process):
             # Enumeration members expect an integer,
             # which can be obtained from `LOT_STATUS_KIND_TYPE[name].ordinal
             sample["lot_status"] = LOT_STATUS_KIND_TYPE["WAITING"].ordinal
-            sample["next_station"] = STATION_KIND_TYPE["TEMPERING_CONTROLLER"].ordinal
+            sample["next_station"] = STATION_KIND_TYPE[
+                "TEMPERING_CONTROLLER"
+            ].ordinal
             print(
                 f"Starting lot:\n[lot_id: {sample['lot_id']} next_station: {sample['next_station']}]"
             )
@@ -66,7 +68,10 @@ def monitor_lot_state(reader):
         else:
             # Exercise #3.2: Detect that a lot is complete by checking for
             # the disposed state.
-            if sample.info.state.instance_state == dds.InstanceState.not_alive_disposed():
+            if (
+                sample.info.state.instance_state
+                == dds.InstanceState.not_alive_disposed()
+            ):
                 key_holder = reader.key_value(sample.info.instance_handle)
                 print(f"[lot_id: {key_holder['lot_id']} is completed]")
 
@@ -90,7 +95,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic with type
     # ChocolateLotState.  Topic name is a constant defined in the XML file.
-    topic = dds.DynamicData.Topic(participant, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_LOT_TYPE)
+    topic = dds.DynamicData.Topic(
+        participant, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_LOT_TYPE
+    )
 
     # Exercise #4.1: Add a Topic for Temperature to this application
     temperature_topic = dds.DynamicData.Topic(
@@ -114,7 +121,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
     reader = dds.DynamicData.DataReader(subscriber, topic)
 
     # Exercise #4.2: Add a DataReader for Temperature to this application
-    temperature_reader = dds.DynamicData.DataReader(subscriber, temperature_topic)
+    temperature_reader = dds.DynamicData.DataReader(
+        subscriber, temperature_topic
+    )
 
     # Obtain the DataReader's Status Condition
     status_condition = dds.StatusCondition(reader)
@@ -134,7 +143,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     temperature_status_condition = dds.StatusCondition(reader)
 
-    temperature_status_condition.enabled_statuses = dds.StatusMask.data_available()
+    temperature_status_condition.enabled_statuses = (
+        dds.StatusMask.data_available()
+    )
 
     def temp_handler(_):
         nonlocal temperature_reader

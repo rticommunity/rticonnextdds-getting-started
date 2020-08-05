@@ -73,11 +73,15 @@ def process_lot(lot_state_reader, lot_state_writer):
 
             # Send an update that the tempering station is processing lot
             updated_state = sample.data
-            updated_state["lot_status"] = LOT_STATUS_KIND_TYPE["PROCESSING"].ordinal
+            updated_state["lot_status"] = LOT_STATUS_KIND_TYPE[
+                "PROCESSING"
+            ].ordinal
             updated_state["next_station"] = STATION_KIND_TYPE[
                 "INVALID_CONTROLLER"
             ].ordinal
-            updated_state["station"] = STATION_KIND_TYPE["TEMPERING_CONTROLLER"].ordinal
+            updated_state["station"] = STATION_KIND_TYPE[
+                "TEMPERING_CONTROLLER"
+            ].ordinal
             lot_state_writer.write(updated_state)
 
             # "Processing" the lot.
@@ -113,7 +117,9 @@ def run_example(domain_id, sensor_id):
 
     # Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
     # DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    temperature_writer = dds.DynamicData.DataWriter(publisher, temperature_topic)
+    temperature_writer = dds.DynamicData.DataWriter(
+        publisher, temperature_topic
+    )
     lot_state_writer = dds.DynamicData.DataWriter(publisher, lot_state_topic)
 
     # A Subscriber allows an application to create one or more DataReaders

@@ -24,13 +24,18 @@ def run_example(domain_id, sample_count):
     # a DDS domain. Typically there is one DomainParticipant per application.
     # DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
     with dds.DomainParticipant(domain_id) as participant:
+        # Here we use a provider because it allows us to easily extract the
+        # type from the XML file. The definition for the type can be found
+        # in HelloWorld.xml
         provider = dds.QosProvider(FILE)
 
         provider_type = provider.type("HelloWorld")
 
         # A Topic has a name and a datatype. Create a Topic named
         # "HelloWorld Topic" with type HelloWorld
-        topic = dds.DynamicData.Topic(participant, "Example HelloWorld", provider_type)
+        topic = dds.DynamicData.Topic(
+            participant, "Example HelloWorld", provider_type
+        )
 
         # A Publisher allows an application to create one or more DataWriters
         # Publisher QoS is configured in USER_QOS_PROFILES.xml

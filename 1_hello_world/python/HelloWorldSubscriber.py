@@ -21,7 +21,8 @@ FILE = str(pathlib.Path(__file__).parent.absolute()) + "/" + "HelloWorld.xml"
 def process_data(reader):
 
     # Take all samples.  Samples are loaned to application, loan is
-    # returned when LoanedSamples destructor called.
+    # returned when LoanedSamples destructor called or when you return
+    # the loan explicitly.
     samples_read = 0
     samples = reader.take()
 
@@ -39,13 +40,17 @@ def run_example(domain_id, sample_count):
     # a DDS domain. Typically there is one DomainParticipant per application.
     # Create a DomainParticipant with default Qos
     with dds.DomainParticipant(domain_id) as participant:
+        # A QosProvider is used here to get the type from the file
+        # HelloWorld.xml
         provider = dds.QosProvider(FILE)
 
         provider_type = provider.type("HelloWorld")
 
         # A Topic has a name and a datatype. Create a Topic named
         # "HelloWorld Topic" with type HelloWorld
-        topic = dds.DynamicData.Topic(participant, "Example HelloWorld", provider_type)
+        topic = dds.DynamicData.Topic(
+            participant, "Example HelloWorld", provider_type
+        )
 
         # A Subscriber allows an application to create one or more DataReaders
         # Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -62,10 +67,11 @@ def run_example(domain_id, sample_count):
         # Enable the 'data available' status.
         status_condition.enabled_statuses = dds.StatusMask.data_available()
 
+        # Initialize samples_read to zero
+        samples_read = 0
+        
         # Associate a handler with the status condition. This will run when the
         # condition is triggered, in the context of the dispatch call (see below)
-        samples_read = 0
-
         def hander(_):  # condition argument is not used
             nonlocal samples_read
             nonlocal reader
