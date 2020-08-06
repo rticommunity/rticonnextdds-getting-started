@@ -11,39 +11,26 @@
  */
 
 using System;
-using Omg.Dds.Core;
+using System.Threading;
 using Rti.Dds.Core;
-using Rti.Dds.Core.Status;
 using Rti.Dds.Domain;
-using Rti.Dds.Subscription;
+using Rti.Dds.Publication;
 using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
 namespace StreamingData
 {
     /// <summary>
-    /// Example subscriber application
+    /// Example publisher application
     /// </summary>
-    public class TemperatureSubscriber
+    public class TemperaturePublisher
     {
         private bool shutdownRequested;
 
-        private static int ProcessData(DataReader<DynamicData> reader)
-        {
-            // Take all samples. Samples are loaned to application, loan is
-            // returned when samples.Dispose() is called.
-            int samplesRead = 0;
-            using var samples = reader.Take();
-            foreach (var sample in samples.ValidData)
-            {
-                Console.WriteLine($"Received:\n{sample}");
-                samplesRead++;
-            }
-
-            return samplesRead;
-        }
-
-        private void RunExample(int domainId, int sampleCount)
+        private void RunExample(
+            int domainId,
+            int sampleCount,
+            string sensorId)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -55,55 +42,50 @@ namespace StreamingData
             // "ChocolateTemperature" with type Temperature
             // In this example we use a DynamicType defined in XML, which creates
             // a DynamicData topic.
-            var provider = new QosProvider("../temperature.xml");
+            var provider = new QosProvider("../chocolate_factory.xml");
             Topic<DynamicData> topic = participant.CreateTopic(
                 "ChocolateTemperature",
                 provider.GetType("Temperature"));
 
-            // A Subscriber allows an application to create one or more DataReaders
-            // Subscriber QoS is configured in USER_QOS_PROFILES.xml
-            Subscriber subscriber = participant.CreateSubscriber();
+            // A Publisher allows an application to create one or more DataWriters
+            // Publisher QoS is configured in USER_QOS_PROFILES.xml
+            Publisher publisher = participant.CreatePublisher();
 
-            // This DataReader reads data of type Temperature on Topic
-            // "ChocolateTemperature". DataReader QoS is configured in
-            // USER_QOS_PROFILES.xml
-            DataReader<DynamicData> reader = subscriber.CreateDataReader(topic);
+            // This DataWriter writes data on Topic "ChocolateTemperature"
+            // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+            DataWriter<DynamicData> writer = publisher.CreateDataWriter(topic);
 
-            // Obtain the DataReader's Status Condition
-            StatusCondition statusCondition = reader.StatusCondition;
-
-            // Enable the 'data available' status.
-            statusCondition.EnabledStatuses = StatusMask.DataAvailable;
-
-            // Associate an event handler with the status condition.
-            // This will run when the condition is triggered, in the context of
-            // the dispatch call (see below)
-            int samplesRead = 0;
-            statusCondition.Triggered += _ => samplesRead += ProcessData(reader);
-
-            // Create a WaitSet and attach the StatusCondition
-            var waitset = new WaitSet();
-            waitset.AttachCondition(statusCondition);
-            while (samplesRead < sampleCount && !shutdownRequested)
+            // Create a DynamicData sample for writing
+            var sample = writer.CreateData();
+            Random rand = new Random();
+            for (int count = 0; count < sampleCount && !shutdownRequested; count++)
             {
-                // Dispatch will call the handlers associated to the WaitSet
-                // conditions when they activate
-                Console.WriteLine("ChocolateTemperature subscriber sleeping for 4 sec...");
-                waitset.Dispatch(Duration.FromSeconds(4));
+                // Modify the data to be written here
+                sample.SetValue("sensor_id", sensorId);
+                sample.SetValue("degrees", rand.Next(30, 33));
+
+                Console.WriteLine($"Writing ChocolateTemperature, count {count}");
+                writer.Write(sample);
+
+                // Exercise: Change this to sleep 100 ms in between writing temperatures
+                Thread.Sleep(4000);
             }
         }
-
 
         /// <summary>
         /// Main function, receiving structured command-line arguments
         /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sample-count 5
+        /// For example: dotnet run -- --domain-id 54 --sensor-id mySensor
         /// </summary>
         /// <param name="domainId">The domain ID to create the DomainParticipant</param>
         /// <param name="sampleCount">The number of data samples to publish</param>
-        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
+        /// <param name="sensorId">Identifies a sensor</param>
+        public static void Main(
+            int domainId = 0,
+            int sampleCount = int.MaxValue,
+            string sensorId = "default_id")
         {
-            var example = new TemperatureSubscriber();
+            var example = new TemperaturePublisher();
 
             // Setup signal handler
             Console.CancelKeyPress += (_, eventArgs) =>
@@ -115,7 +97,7 @@ namespace StreamingData
 
             try
             {
-                example.RunExample(domainId, sampleCount);
+                example.RunExample(domainId, sampleCount, sensorId);
             }
             catch (Exception ex)
             {

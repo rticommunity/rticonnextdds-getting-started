@@ -25,11 +25,11 @@ To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
 ```
-cd 3_keys_instances
+cd 4_keys_instances
 rtiddsgen -convertToXml chocolate_factory.idl
 ```
 
-This generates the file `chocolate_factory.xml`, which is loaded by `ChocolateFactoryTypes.cs` in `3_keys_instances/csharp/Utils/`.
+This generates the file `chocolate_factory.xml`, which is loaded by `ChocolateFactoryTypes.cs` in `4_keys_instances/csharp/Utils/`.
 
 ## Build and Run the Applications
 

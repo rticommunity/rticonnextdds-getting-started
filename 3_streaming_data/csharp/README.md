@@ -25,11 +25,11 @@ To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
 ```
-cd 2_streaming_data
+cd 3_streaming_data
 rtiddsgen -convertToXml temperature.idl
 ```
 
-This generates the file `temperature.xml`, which is loaded by `TemperaturePublisher.cs`
+This generates the file `chocolate_factory.xml`, which is loaded by `TemperaturePublisher.cs`
 and `TemperatureSubscriber.cs`.
 
 ## Build and Run the Applications
@@ -39,7 +39,7 @@ build the solution file (`StreamingData.sln`) from *Visual Studio 2019* or
 *Visual Studio for Mac*. *Visual Studio Code* also provides excellent language
 support.
 
-From within the `2_streaming_data/csharp` directory run the following command:
+From within the `3_streaming_data/csharp` directory run the following command:
 
 ```
 dotnet run -p TemperatureSubscriber
