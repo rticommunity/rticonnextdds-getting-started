@@ -17,7 +17,11 @@ import random  # for generating random numbers
 import argparse  # for arg parsing
 import time  # for sleeping
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/" + "temperature.xml"
+FILE = (
+    str(pathlib.Path(__file__).parent.absolute())
+    + "/"
+    + "chocolate_factory.xml"
+)
 
 
 def process_data(reader):
@@ -66,12 +70,12 @@ def run_example(domain_id, sample_count, sensor_id):
     # condition is triggered, in the context of the dispatch call (see below)
     samples_read = 0
 
-    def hander(_):
+    def handler(_):
         nonlocal samples_read
         nonlocal reader
         samples_read += process_data(reader)
 
-    status_condition.handler(hander)
+    status_condition.handler(handler)
 
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()

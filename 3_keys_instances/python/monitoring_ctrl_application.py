@@ -147,11 +147,11 @@ def run_example(domain_id, lots_to_process, sensor_id):
         dds.StatusMask.data_available()
     )
 
-    def temp_handler(_):
+    def temperature_handler(_):
         nonlocal temperature_reader
         monitor_lot_state(temperature_reader)
 
-    temperature_status_condition.handler(temp_handler)
+    temperature_status_condition.handler(temperature_handler)
 
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()

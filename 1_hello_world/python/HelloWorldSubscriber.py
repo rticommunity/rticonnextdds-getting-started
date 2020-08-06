@@ -24,12 +24,11 @@ def process_data(reader):
     # returned when LoanedSamples destructor called or when you return
     # the loan explicitly.
     samples_read = 0
-    samples = reader.take()
-
-    for sample in samples:
-        if sample.info.valid:
-            print(f"Received: {sample.data}")
-            samples_read += 1
+    with reader.take() as samples:
+        for sample in samples:
+            if sample.info.valid:
+                print(f"Received: {sample.data}")
+                samples_read += 1
 
     return samples_read
 
@@ -69,15 +68,15 @@ def run_example(domain_id, sample_count):
 
         # Initialize samples_read to zero
         samples_read = 0
-        
+
         # Associate a handler with the status condition. This will run when the
         # condition is triggered, in the context of the dispatch call (see below)
-        def hander(_):  # condition argument is not used
+        def handler(_):  # condition argument is not used
             nonlocal samples_read
             nonlocal reader
             samples_read += process_data(reader)
 
-        status_condition.handler(hander)
+        status_condition.handler(handler)
 
         # Create a WaitSet and attach the StatusCondition
         waitset = dds.WaitSet()

@@ -17,7 +17,11 @@ import random  # For generating random data points
 import argparse  # For parsing args
 import time  # For sleep
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/" + "temperature.xml"
+FILE = (
+    str(pathlib.Path(__file__).parent.absolute())
+    + "/"
+    + "chocolate_factory.xml"
+)
 
 
 def run_example(domain_id, sample_count, sensor_id):
@@ -30,8 +34,16 @@ def run_example(domain_id, sample_count, sensor_id):
     # A Topic has a name and a datatype. Create a Topic named
     # "ChocolateTemperature" with type Temperature
     provider_type = dds.QosProvider(FILE).type("Temperature")
+    LOT_STATUS_KIND_TYPE = provider.type("LotStatusKind")
+
     topic = dds.DynamicData.Topic(
         participant, "ChocolateTemperature", provider_type
+    )
+
+    # Exercise #2.1: Add a new Topic
+    lot_state_provider_type = dds.QosProvider(FILE).type("ChocolateLotState")
+    lot_state_topic = dds.DynamicData.Topic(
+        participant, "ChocolateLotState", lot_state_provider_type
     )
 
     # A Publisher allows an application to create one or more DataWriters
@@ -44,6 +56,11 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # Create data sample for writing
     sample = dds.DynamicData(provider_type)
+
+    # Exercise #2.2: Add new DataWriter and data sample
+    lot_state_writer = dds.DynamicData.DataWriter(publisher, lot_state_topic)
+    lot_state_sample = dds.DynamicData(lot_state_provider_type)
+
     i = 0
     try:
         while sample_count is None or i < sample_count:
@@ -51,6 +68,15 @@ def run_example(domain_id, sample_count, sensor_id):
             sample["sensor_id"] = sensor_id
             # Generate a number x where 30 <= x <= 32
             sample["degrees"] = random.randint(30, 32)
+
+            # Exercise #2.3: Write data with new ChocolateLotState DataWriter
+            # Note: We're adding a writer but no reader, this exercise can be
+            # viewed using rtiddsspy
+            lot_state_sample["lot_id"] = sample_count % 100
+            lot_state_sample["lot_status"] = LOT_STATUS_KIND_TYPE[
+                "PROCESSING"
+            ].ordinal
+            lot_state_writer.write(lot_state_sample)
 
             print(f"Writing ChocolateTemperature, count {i}")
             writer.write(sample)
