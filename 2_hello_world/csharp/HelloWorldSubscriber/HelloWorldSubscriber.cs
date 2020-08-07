@@ -77,15 +77,25 @@ namespace HelloWorld
             // USER_QOS_PROFILES.xml
             DataReader<DynamicData> reader = subscriber.CreateDataReader(topic);
 
-            var statusCondition = reader.StatusCondition;
+            // Obtain the DataReader's Status Condition
+            StatusCondition statusCondition = reader.StatusCondition;
+
+            // Enable the 'data available' status.
             statusCondition.EnabledStatuses = StatusMask.DataAvailable;
+
+            // Associate an event handler with the status condition.
+            // This will run when the condition is triggered, in the context of
+            // the dispatch call (see below)
             int samplesRead = 0;
             statusCondition.Triggered += _ => samplesRead += ProcessData(reader);
 
+            // Create a WaitSet and attach the StatusCondition
             var waitset = new WaitSet();
             waitset.AttachCondition(statusCondition);
             while (samplesRead < sampleCount)
             {
+                // Dispatch will call the handlers associated to the WaitSet
+                // conditions when they activate
                 Console.WriteLine("HelloWorld subscriber sleeping for 4 sec...");
                 waitset.Dispatch(Duration.FromSeconds(4));
             }
