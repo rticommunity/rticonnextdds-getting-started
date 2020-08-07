@@ -47,6 +47,11 @@ namespace StreamingData
                 "ChocolateTemperature",
                 provider.GetType("Temperature"));
 
+            // Exercise #2.1: Add new Topic
+            Topic<DynamicData> lotStateTopic = participant.CreateTopic(
+                "ChocolateLotState",
+                provider.GetType("ChocolateLotState"));
+
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
             Publisher publisher = participant.CreatePublisher();
@@ -56,7 +61,13 @@ namespace StreamingData
             DataWriter<DynamicData> writer = publisher.CreateDataWriter(topic);
 
             // Create a DynamicData sample for writing
-            var sample = writer.CreateData();
+            DynamicData sample = writer.CreateData();
+
+            // Exercise #2.2: Add new DataWriter and data sample
+            DataWriter<DynamicData> lotStateWriter =
+                publisher.CreateDataWriter(lotStateTopic);
+            DynamicData lotStateSample = lotStateWriter.CreateData();
+
             Random rand = new Random();
             for (int count = 0; count < sampleCount && !shutdownRequested; count++)
             {
@@ -66,6 +77,13 @@ namespace StreamingData
 
                 Console.WriteLine($"Writing ChocolateTemperature, count {count}");
                 writer.Write(sample);
+
+                // Exercise #2.3 Write data with new ChocolateLotState DataWriter
+                lotStateWriter.SetValue("lot_id", count % 100);
+                // SetAnyValue performs type conversions. In this case it can
+                // translate a string to the corresponding enumerator.
+                lotStateWriter.SetAnyValue("lot_status", "WAITING");
+                lotStateWriter.Write(lotStateSample);
 
                 // Exercise: Change this to sleep 100 ms in between writing temperatures
                 Thread.Sleep(4000);

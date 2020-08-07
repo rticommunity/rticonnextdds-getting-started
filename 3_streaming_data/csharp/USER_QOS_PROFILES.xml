@@ -29,7 +29,7 @@
     -->
     <qos_library name="ChocolateFactoryLibrary">
 
-        <!-- 
+        <!--
             QoS profile used to configure reliable communication between the
             DataWriter and DataReader created in the example code.
 
@@ -40,6 +40,9 @@
             is_default_qos:
             These QoS profiles will be used as the default, as long as this
             file is in the working directory when running the example.
+        -->
+        <!-- Exercise #1.2: Use Streaming profile:
+             set base_name="BuiltinQosLib::Pattern.Streaming"
         -->
         <qos_profile name="ChocolateTemperatureProfile"
                      base_name="BuiltinQosLib::Generic.StrictReliable"
