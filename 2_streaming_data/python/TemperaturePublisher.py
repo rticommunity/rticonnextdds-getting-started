@@ -81,7 +81,8 @@ def run_example(domain_id, sample_count, sensor_id):
             print(f"Writing ChocolateTemperature, count {i}")
             writer.write(sample)
 
-            # Exercise: Change this to sleep 100 ms in between writing temperatures
+            # Exercise 1.1: Change this to sleep 100 ms in between writing 
+            # temperatures
             time.sleep(4)
 
             i += 1
