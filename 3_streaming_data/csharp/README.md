@@ -24,7 +24,7 @@ from IDL is not yet available in this Preview release.
 To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
-```
+```bash
 cd 3_streaming_data
 rtiddsgen -convertToXml temperature.idl
 ```
@@ -41,12 +41,25 @@ support.
 
 From within the `3_streaming_data/csharp` directory run the following command:
 
-```
+```bash
 dotnet run -p TemperatureSubscriber
 ```
 
 From another command prompt, run:
 
-```
+```bash
 dotnet run -p TemperaturePublisher -- --id <some string>
+```
+
+**Note**: These examples are configured to build a *.NET Core 3.x* application, but
+the library is compatible with any *.NET Standard 2.0*-compatible runtime.
+
+If you want to use *.NET 5*, simply edit the `.csproj` files and change:
+```xml
+<TargetFramework>netcoreapp3.0</TargetFramework>
+```
+
+To:
+```xml
+<TargetFramework>net5</TargetFramework>
 ```

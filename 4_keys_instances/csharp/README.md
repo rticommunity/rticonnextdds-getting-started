@@ -24,7 +24,7 @@ from IDL is not yet available in this Preview release.
 To generate the XML definition of the types from IDL, run
 *RTI Code Generator (rtiddsgen)* as follows:
 
-```
+```bash
 cd 4_keys_instances
 rtiddsgen -convertToXml chocolate_factory.idl
 ```
@@ -40,21 +40,33 @@ support.
 
 From within the `3_keyes_instances/csharp` directory run the following command:
 
-```
+```bash
 dotnet run -p TemperingApplication
 ```
 
 From another command prompt, run:
-```
+```bash
 dotnet run -p MonitoringCtrlApplication
 ```
 
 You can run multiple copies of the tempering application on differet terminals:
-```
+```bash
 dotnet run -p TemperingApplication -- -id 1
 ```
 
-```
+```bash
 dotnet run -p TemperingApplication -- -id 2
 ```
 
+**Note**: These examples are configured to build a *.NET Core 3.x* application, but
+the library is compatible with any *.NET Standard 2.0*-compatible runtime.
+
+If you want to use *.NET 5*, simply edit the `.csproj` files and change:
+```xml
+<TargetFramework>netcoreapp3.0</TargetFramework>
+```
+
+To:
+```xml
+<TargetFramework>net5</TargetFramework>
+```
