@@ -58,32 +58,31 @@ def monitor_lot_state(reader):
     # Take all samples.  Samples are loaned to application, loan is
     # returned when LoanedSamples destructor called.
     samples_read = 0
-    samples = reader.take()
-
-    # Receive updates from stations about the state of current lots
-    for sample in samples:
-        if sample.info.valid:
-            print("Recieved lot update: " + str(sample.data))
-            samples_read += 1
-        else:
-            # Exercise #3.2: Detect that a lot is complete by checking for
-            # the disposed state.
-            if (
-                sample.info.state.instance_state
-                == dds.InstanceState.not_alive_disposed()
-            ):
-                key_holder = reader.key_value(sample.info.instance_handle)
-                print(f"[lot_id: {key_holder['lot_id']} is completed]")
+    with reader.take() as samples:
+        # Receive updates from stations about the state of current lots
+        for sample in samples:
+            if sample.info.valid:
+                print("Recieved lot update: " + str(sample.data))
+                samples_read += 1
+            else:
+                # Exercise #3.2: Detect that a lot is complete by checking for
+                # the disposed state.
+                if (
+                    sample.info.state.instance_state
+                    == dds.InstanceState.not_alive_disposed()
+                ):
+                    key_holder = reader.key_value(sample.info.instance_handle)
+                    print(f"[lot_id: {key_holder['lot_id']} is completed]")
 
     return samples_read
 
 
 # Exercise #4.4: Add monitor_temperature function
 def monitor_temperature(reader):
-    samples = reader.take()
-    for sample in samples:
-        if sample.info.valid and sample["degrees"] > 32:
-            print(f"Temperature high: {sample}")
+    with reader.take() as samples:
+        for sample in samples:
+            if sample.info.valid and sample["degrees"] > 32:
+                print(f"Temperature high: {sample}")
 
 
 def run_example(domain_id, lots_to_process, sensor_id):

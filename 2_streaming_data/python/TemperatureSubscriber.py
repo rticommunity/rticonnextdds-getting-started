@@ -28,12 +28,12 @@ def process_data(reader):
     # Take all samples.  Samples are loaned to application, loan is
     # returned when the variable sample goes out of scope
     samples_read = 0
-    samples = reader.take()
+    with reader.take() as samples:
+        for sample in samples:
+            if sample.info.valid:
+                samples_read += 1
+                print(f"Received {sample.data}")
 
-    for sample in samples:
-        if sample.info.valid:
-            samples_read += 1
-            print(f"Received {sample.data}")
     return samples_read
 
 

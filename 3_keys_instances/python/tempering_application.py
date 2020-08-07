@@ -60,40 +60,41 @@ def publish_temperature(writer, sensor_id):
 def process_lot(lot_state_reader, lot_state_writer):
     # Take all samples.  Samples are loaned to application, loan is
     # returned when LoanedSamples destructor called.
-    samples = lot_state_reader.take()
+    with lot_state_reader.take() as samples:
+        # Process lots waiting for tempering
+        for sample in samples:
+            if (
+                sample.info.valid
+                and sample.data["next_station"]
+                == STATION_KIND_TYPE["TEMPERING_CONTROLLER"].ordinal
+            ):
+                print(f"Processing lot #{sample.data['lot_id']}")
 
-    # Process lots waiting for tempering
-    for sample in samples:
-        if (
-            sample.info.valid
-            and sample.data["next_station"]
-            == STATION_KIND_TYPE["TEMPERING_CONTROLLER"].ordinal
-        ):
-            print(f"Processing lot #{sample.data['lot_id']}")
+                # Send an update that the tempering station is processing lot
+                updated_state = sample.data
+                updated_state["lot_status"] = LOT_STATUS_KIND_TYPE[
+                    "PROCESSING"
+                ].ordinal
+                updated_state["next_station"] = STATION_KIND_TYPE[
+                    "INVALID_CONTROLLER"
+                ].ordinal
+                updated_state["station"] = STATION_KIND_TYPE[
+                    "TEMPERING_CONTROLLER"
+                ].ordinal
+                lot_state_writer.write(updated_state)
 
-            # Send an update that the tempering station is processing lot
-            updated_state = sample.data
-            updated_state["lot_status"] = LOT_STATUS_KIND_TYPE[
-                "PROCESSING"
-            ].ordinal
-            updated_state["next_station"] = STATION_KIND_TYPE[
-                "INVALID_CONTROLLER"
-            ].ordinal
-            updated_state["station"] = STATION_KIND_TYPE[
-                "TEMPERING_CONTROLLER"
-            ].ordinal
-            lot_state_writer.write(updated_state)
+                # "Processing" the lot.
+                time.sleep(5)
 
-            # "Processing" the lot.
-            time.sleep(5)
+                # Exercise #3.1: Since this is the last step in processing,
+                # notify the monitoring application that the lot is complete
+                # using a dispose
+                instance_handle = lot_state_writer.lookup_instance(
+                    updated_state
+                )
+                lot_state_writer.dispose_instance(instance_handle)
 
-            # Exercise #3.1: Since this is the last step in processing,
-            # notify the monitoring application that the lot is complete
-            # using a dispose
-            instance_handle = lot_state_writer.lookup_instance(updated_state)
-            lot_state_writer.dispose_instance(instance_handle)
-
-    # The LoanedSamples destructor returns the loan
+        # The LoanedSamples destructor returns the loan
 
 
 def run_example(domain_id, sensor_id):
