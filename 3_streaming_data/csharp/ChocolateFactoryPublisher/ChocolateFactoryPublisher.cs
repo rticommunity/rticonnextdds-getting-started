@@ -23,7 +23,7 @@ namespace StreamingData
     /// <summary>
     /// Example publisher application
     /// </summary>
-    public class TemperaturePublisher
+    public class ChocolateFactoryPublisher
     {
         private bool shutdownRequested;
 
@@ -85,7 +85,7 @@ namespace StreamingData
             int sampleCount = int.MaxValue,
             string sensorId = "default_id")
         {
-            var example = new TemperaturePublisher();
+            var example = new ChocolateFactoryPublisher();
 
             // Setup signal handler
             Console.CancelKeyPress += (_, eventArgs) =>

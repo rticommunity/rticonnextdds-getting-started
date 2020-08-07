@@ -24,7 +24,7 @@ namespace StreamingData
     /// <summary>
     /// Example subscriber application
     /// </summary>
-    public class TemperatureSubscriber
+    public class ChocolateFactorySubscriber
     {
         private bool shutdownRequested;
 
@@ -103,7 +103,7 @@ namespace StreamingData
         /// <param name="sampleCount">The number of data samples to publish</param>
         public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
         {
-            var example = new TemperatureSubscriber();
+            var example = new ChocolateFactorySubscriber();
 
             // Setup signal handler
             Console.CancelKeyPress += (_, eventArgs) =>

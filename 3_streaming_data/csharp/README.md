@@ -29,8 +29,8 @@ cd 3_streaming_data
 rtiddsgen -convertToXml temperature.idl
 ```
 
-This generates the file `chocolate_factory.xml`, which is loaded by `TemperaturePublisher.cs`
-and `TemperatureSubscriber.cs`.
+This generates the file `chocolate_factory.xml`, which is loaded by `ChocolateFactoryPublisher.cs`
+and `ChocolateFactorySubscriber.cs`.
 
 ## Build and Run the Applications
 
@@ -42,13 +42,13 @@ support.
 From within the `3_streaming_data/csharp` directory run the following command:
 
 ```bash
-dotnet run -p TemperatureSubscriber
+dotnet run -p ChocolateFactorySubscriber
 ```
 
 From another command prompt, run:
 
 ```bash
-dotnet run -p TemperaturePublisher -- --id <some string>
+dotnet run -p ChocolateFactoryPublisher -- --id <some string>
 ```
 
 **Note**: These examples are configured to build a *.NET Core 3.x* application, but
