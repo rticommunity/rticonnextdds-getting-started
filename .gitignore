@@ -60,5 +60,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
 # Vim
 *.swp
+!**/csharp/**/*.csproj
+!**/csharp/**/*.sln
+
