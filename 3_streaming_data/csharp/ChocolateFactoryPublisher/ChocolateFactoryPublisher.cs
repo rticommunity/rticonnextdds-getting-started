@@ -85,7 +85,8 @@ namespace StreamingData
                 lotStateWriter.SetAnyValue("lot_status", "WAITING");
                 lotStateWriter.Write(lotStateSample);
 
-                // Exercise : #1.1: Change this to sleep 100 ms in between writing temperatures
+                // Exercise #1.1: Change this to sleep 100 ms in between writing temperatures
+
 
                 Thread.Sleep(4000);
             }
