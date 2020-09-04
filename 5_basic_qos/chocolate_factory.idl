@@ -28,11 +28,10 @@ struct Temperature {
 // Kind of station processing the chocolate
 enum StationKind {
     INVALID_CONTROLLER,
-    SUGAR_CONTROLLER,
     COCOA_BUTTER_CONTROLLER,
-    COCOA_LIQUOR_CONTROLLER,
-    VANILLA_CONTROLLER,
+    SUGAR_CONTROLLER,
     MILK_CONTROLLER, 
+    VANILLA_CONTROLLER,
     TEMPERING_CONTROLLER
 };
 

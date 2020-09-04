@@ -35,7 +35,7 @@ void publish_start_lot(
         // at the tempering station
         sample.lot_id(count % 100);
         sample.lot_status(LotStatusKind::WAITING);
-        sample.next_station(StationKind::TEMPERING_CONTROLLER);
+        sample.next_station(StationKind::COCOA_BUTTER_CONTROLLER);
 
         std::cout << std::endl << "Starting lot: " << std::endl;
         std::cout << "[lot_id: " << sample.lot_id()
@@ -45,7 +45,7 @@ void publish_start_lot(
         // Send an update to station that there is a lot waiting for tempering
         lot_state_writer.write(sample);
 
-        rti::util::sleep(dds::core::Duration(10));
+        rti::util::sleep(dds::core::Duration(30));
     }
 }
 
@@ -91,21 +91,24 @@ void monitor_temperature(dds::sub::DataReader<Temperature>& reader)
    // Only an error if over 32 degrees Fahrenheit.
    for (const auto& sample : samples) {
        if (sample.info().valid()) {
-           if (sample.data().degrees() > 32) {
-               std::cout << "Temperature high: " << sample.data() << std::endl;
-           }
+            std::cout << "Tempering temperature out of range: "
+                      << sample.data() << std::endl;
        }
    }
 }
 
 void run_example(unsigned int domain_id, unsigned int lots_to_process)
 {
-    // Exercise #1.1: Add QoS provider
+    // Loads the QoS from the qos_profiles.xml file.
+    dds::core::QosProvider qos_provider("./qos_profiles.xml");
 
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // Exercise #1.2: Load DomainParticipant QoS profile
-    dds::domain::DomainParticipant participant(domain_id);
+    // Load DomainParticipant QoS profile
+    dds::domain::DomainParticipant participant(
+            domain_id,
+            qos_provider.participant_qos(
+                    "ChocolateFactoryLibrary::MonitoringControlApplication"));
 
     // A Topic has a name and a datatype. Create a Topic with type
     // ChocolateLotState.  Topic name is a constant defined in the IDL file.
@@ -116,29 +119,42 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     dds::topic::Topic<Temperature> temperature_topic(
             participant,
             CHOCOLATE_TEMPERATURE_TOPIC);
+    dds::topic::ContentFilteredTopic<Temperature>
+            filtered_temperature_topic(
+                    temperature_topic,
+                    "FilteredTemperature",
+                    dds::topic::Filter(
+                            "degrees > %0 or degrees < %1",
+                            { "32", "30" }));
 
     // A Publisher allows an application to create one or more DataWriters
     // Publisher QoS is configured in USER_QOS_PROFILES.xml
     dds::pub::Publisher publisher(participant);
 
     // This DataWriter writes data on Topic "ChocolateLotState"
-    // Exercise #4.1: Load ChocolateLotState DataWriter QoS profile after
-    // debugging incompatible QoS
-    dds::pub::DataWriter<ChocolateLotState> lot_state_writer(publisher, topic);
+    dds::pub::DataWriter<ChocolateLotState> lot_state_writer(
+            publisher,
+            topic,
+            qos_provider.datawriter_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
     // A Subscriber allows an application to create one or more DataReaders
     // Subscriber QoS is configured in USER_QOS_PROFILES.xml
     dds::sub::Subscriber subscriber(participant);
 
     // Create DataReader of Topic "ChocolateLotState".
-    // Exercise #1.3: Update the lot_state_reader and temperature_reader
-    // to use correct QoS
-    dds::sub::DataReader<ChocolateLotState> lot_state_reader(subscriber, topic);
+    dds::sub::DataReader<ChocolateLotState> lot_state_reader(
+            subscriber,
+            topic,
+            qos_provider.datareader_qos(
+                    "ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
     // Add a DataReader for Temperature to this application
     dds::sub::DataReader<Temperature> temperature_reader(
             subscriber,
-            temperature_topic);
+            filtered_temperature_topic,
+            qos_provider.datareader_qos(
+                    "ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
     // Obtain the DataReader's Status Condition
     dds::core::cond::StatusCondition temperature_status_condition(
             temperature_reader);
@@ -195,9 +211,9 @@ int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
     auto arguments = parse_arguments(argc, argv);
-    if (arguments.parse_result == ParseReturn::exit) {
+    if (arguments.parse_result == ParseReturn::PARSE_RETURN_EXIT) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::failure) {
+    } else if (arguments.parse_result == ParseReturn::PARSE_RETURN_FAILURE) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
