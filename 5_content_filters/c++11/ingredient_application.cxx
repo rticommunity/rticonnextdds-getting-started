@@ -31,7 +31,7 @@ using namespace application;
 
 void process_lot(
         StationKind station_kind,
-        std::map<StationKind, StationKind> next_station,
+        const std::map<StationKind, StationKind>& next_station,
         dds::sub::DataReader<ChocolateLotState>& lot_state_reader,
         dds::pub::DataWriter<ChocolateLotState>& lot_state_writer)
 {
