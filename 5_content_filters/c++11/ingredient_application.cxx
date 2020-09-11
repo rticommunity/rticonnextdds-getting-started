@@ -30,7 +30,7 @@ using namespace application;
 // 3) After "processing" the lot, publishes an updated lot state
 
 void process_lot(
-        StationKind station_kind,
+        const StationKind station_kind,
         const std::map<StationKind, StationKind>& next_station,
         dds::sub::DataReader<ChocolateLotState>& lot_state_reader,
         dds::pub::DataWriter<ChocolateLotState>& lot_state_writer)
@@ -42,54 +42,58 @@ void process_lot(
 
     // Process lots waiting for tempering
     for (const auto& sample : samples) {
-        // Exercise #1.3: Remove the check that the Tempering Application is
-        // the next_station. This will now be filtered automatically.
-        if (sample.info().valid() && !shutdown_requested) {
-            std::cout << "Processing lot #" << sample.data().lot_id()
-                      << std::endl;
-
-            // Send an update that this station is processing lot
-            ChocolateLotState updated_state(sample.data());
-            updated_state.lot_status(LotStatusKind::PROCESSING);
-            updated_state.next_station(StationKind::INVALID_CONTROLLER);
-            updated_state.station(station_kind);
-            lot_state_writer.write(updated_state);
-
-            // "Processing" the lot.
-            rti::util::sleep(dds::core::Duration(5));
-
-            // Send an update that this station is done processing lot
-            updated_state.lot_status(LotStatusKind::COMPLETED);
-            updated_state.next_station(next_station[station_kind]);
-            updated_state.station(station_kind);
-            lot_state_writer.write(updated_state);
+        if (!sample.info().valid() || shutdown_requested) {
+            break;
         }
+
+        // No need to check that this is the next station: content filter
+        // ensures that the reader only receives lots with
+        // next_station == this station
+        std::cout << "Processing lot #" << sample.data().lot_id() << std::endl;
+
+        // Send an update that this station is processing lot
+        ChocolateLotState updated_state(sample.data());
+        updated_state.lot_status(LotStatusKind::PROCESSING);
+        updated_state.next_station(StationKind::INVALID_CONTROLLER);
+        updated_state.station(station_kind);
+        lot_state_writer.write(updated_state);
+
+        // "Processing" the lot.
+        rti::util::sleep(dds::core::Duration(5));
+
+        // Send an update that this station is done processing lot
+        updated_state.lot_status(LotStatusKind::COMPLETED);
+        updated_state.next_station(next_station.at(station_kind));
+        updated_state.station(station_kind);
+        lot_state_writer.write(updated_state);
     }
 }  // The LoanedSamples destructor returns the loan
 
 StationKind string_to_stationkind(const std::string& station_kind)
 {
     if (station_kind == "SUGAR_CONTROLLER") {
-        return StationKind_def::SUGAR_CONTROLLER;
+        return StationKind::SUGAR_CONTROLLER;
     } else if (station_kind == "COCOA_BUTTER_CONTROLLER") {
-        return StationKind_def::COCOA_BUTTER_CONTROLLER;
+        return StationKind::COCOA_BUTTER_CONTROLLER;
     } else if (station_kind == "MILK_CONTROLLER") {
-        return StationKind_def::MILK_CONTROLLER;
+        return StationKind::MILK_CONTROLLER;
     } else if (station_kind == "VANILLA_CONTROLLER") {
-        return StationKind_def::VANILLA_CONTROLLER;
+        return StationKind::VANILLA_CONTROLLER;
     }
-    return StationKind_def::INVALID_CONTROLLER;
+    return StationKind::INVALID_CONTROLLER;
 }
 
 void run_example(unsigned int domain_id, const std::string& station_kind)
 {
     StationKind current_station = string_to_stationkind(station_kind);
     std::cout << station_kind << " station starting" << std::endl;
-    std::map<StationKind, StationKind> next_station;
-    next_station[StationKind_def::COCOA_BUTTER_CONTROLLER] = StationKind_def::SUGAR_CONTROLLER;
-    next_station[StationKind_def::SUGAR_CONTROLLER] = StationKind_def::MILK_CONTROLLER;
-    next_station[StationKind_def::MILK_CONTROLLER] = StationKind_def::VANILLA_CONTROLLER;
-    next_station[StationKind_def::VANILLA_CONTROLLER] = StationKind_def::TEMPERING_CONTROLLER;
+    // The stations are in a fixed order, this defines which station is next
+    const std::map<StationKind, StationKind> next_station {
+        { StationKind::COCOA_BUTTER_CONTROLLER, StationKind::SUGAR_CONTROLLER },
+        { StationKind::SUGAR_CONTROLLER, StationKind::MILK_CONTROLLER },
+        { StationKind::MILK_CONTROLLER, StationKind::VANILLA_CONTROLLER },
+        { StationKind::VANILLA_CONTROLLER, StationKind::TEMPERING_CONTROLLER }
+    };
     
     // Loads the QoS from the qos_profiles.xml file. 
     dds::core::QosProvider qos_provider("./qos_profiles.xml");
@@ -98,9 +102,9 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
     // a DDS domain. Typically there is one DomainParticipant per application.
     // Uses TemperingApplication QoS profile to set participant name.
     dds::domain::DomainParticipant participant(
-                domain_id,
-                qos_provider.participant_qos(
-                            "ChocolateFactoryLibrary::TemperingApplication"));
+            domain_id,
+            qos_provider.participant_qos(
+                    "ChocolateFactoryLibrary::TemperingApplication"));
 
     // A Topic has a name and a datatype. Create Topics.
     // Topic names are constants defined in the IDL file.
@@ -112,9 +116,7 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
             filtered_lot_state_topic(
                     lot_state_topic,
                     "FilteredLot",
-                    dds::topic::Filter(
-                            "next_station = %0",
-                            { filter_value }));
+                    dds::topic::Filter("next_station = %0", { filter_value }));
 
     // A Publisher allows an application to create one or more DataWriters
     // Create Publisher with default QoS
@@ -146,18 +148,18 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
     using dds::core::status::StatusMask;
 
     // Enable the 'data available' and 'requested incompatible qos' statuses
-    reader_status_condition.enabled_statuses(
-            StatusMask::data_available());
+    reader_status_condition.enabled_statuses(StatusMask::data_available());
 
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
-    reader_status_condition.extensions().handler([&current_station,
-                                                  &next_station,
-                                                  &lot_state_reader,
-                                                  &lot_state_writer]() {
+    reader_status_condition.extensions().handler([&]() {
         if ((lot_state_reader.status_changes() & StatusMask::data_available())
                 != StatusMask::none()) {
-            process_lot(current_station, next_station, lot_state_reader, lot_state_writer);
+            process_lot(
+                    current_station,
+                    next_station,
+                    lot_state_reader,
+                    lot_state_writer);
         }
     });
 
@@ -170,7 +172,6 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
         std::cout << "Waiting for lot" << std::endl;
         waitset.dispatch(dds::core::Duration(10));  // Wait up to 10s for update
     }
-
 }
 
 int main(int argc, char *argv[])
