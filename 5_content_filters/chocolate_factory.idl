@@ -1,0 +1,62 @@
+/*
+ * (c) Copyright, Real-Time Innovations, 2020.  All rights reserved.
+ * RTI grants Licensee a license to use, modify, compile, and create derivative
+ * works of the software solely for use with RTI Connext DDS. Licensee may
+ * redistribute copies of the software provided that all such copies are subject
+ * to this license. The software is provided "as is", with no warranty of any
+ * type, including any warranty for fitness for any purpose. RTI is under no
+ * obligation to maintain or support the software. RTI shall not be liable for
+ * any incidental or consequential damages arising out of the use or inability
+ * to use the software.
+ */
+
+const string CHOCOLATE_LOT_STATE_TOPIC = "ChocolateLotState";
+const string CHOCOLATE_TEMPERATURE_TOPIC = "ChocolateTemperature";
+
+const uint32 MAX_STRING_LEN = 256;
+
+// Temperature data type used by tempering machine
+struct Temperature {
+    // ID of the sensor sending the temperature
+    @key
+    string<MAX_STRING_LEN> sensor_id;
+
+    // Degrees in Fahrenheit
+    int32 degrees;
+};
+
+// Kind of station processing the chocolate
+enum StationKind {
+    INVALID_CONTROLLER,
+    COCOA_BUTTER_CONTROLLER,
+    SUGAR_CONTROLLER,
+    MILK_CONTROLLER, 
+    VANILLA_CONTROLLER,
+    TEMPERING_CONTROLLER
+};
+
+// Status of the chocolate lot
+enum LotStatusKind {
+    WAITING,
+    PROCESSING,
+    COMPLETED
+};
+
+struct ChocolateLotState {
+    // Unique ID of the chocolate lot being produced.
+    // rolls over each day.
+    @key
+    uint32 lot_id;
+
+    // Which station is producing the status
+    StationKind station;
+
+    // This will be the same as the current station if the station producing
+    // the status is currently processing the lot.
+    StationKind next_station;
+
+    // Current status of the chocolate lot: Waiting/Processing/Completed
+    LotStatusKind lot_status;
+
+};
+
