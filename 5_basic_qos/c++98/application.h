@@ -122,9 +122,6 @@ inline void print_station_kind(StationKind station_kind)
     case COCOA_BUTTER_CONTROLLER:
         std::cout << "COCOA_BUTTER_CONTROLLER";
         break;
-    case COCOA_LIQUOR_CONTROLLER:
-        std::cout << "COCOA_LIQUOR_CONTROLLER";
-        break;
     case VANILLA_CONTROLLER:
         std::cout << "VANILLA_CONTROLLER";
         break;
