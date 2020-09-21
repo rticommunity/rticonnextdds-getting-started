@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <csignal>
+#include <ctime>
 #include <limits>
 
 #ifdef RTI_WIN32
