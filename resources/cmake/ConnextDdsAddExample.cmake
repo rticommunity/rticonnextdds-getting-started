@@ -19,6 +19,7 @@ Function to build the examples.
         LANG language
         [PREFIX prefix]
         [NO_REQUIRE_QOS]
+        [REQUIRE_SCRIPT]
         [DEPENDENCIES ...]
         [CODEGEN_ARGS ...]
         [APPLICATION ...]
@@ -40,6 +41,9 @@ CMake targets and set the dependencies.
     created.
 ``NO_REQUIRE_QOS``:
     If present, the function will copy the USER_QOS_PROFILES.xml file from the
+    source directory to the binary directory.
+``REQUIRE_SCRIPT``:
+    If present, the function will copy the start_all.sh/bat file from the
     source directory to the binary directory.
 ``DEPENDENCIES``:
     Other target dependencies.
@@ -133,6 +137,7 @@ Function to build an example.
         [OUTPUT_NAME output_name]
         [QOS_FILENAME]
         [NO_REQUIRE_QOS]
+        [REQUIRE_SCRIPT]
         [DEPENDENCIES ...]
     )
 
@@ -153,6 +158,8 @@ This method will create the executables from chosen sources.
     is used.
 ``NO_REQUIRE_QOS``:
     If present, the QoS file will not be copied to the binary dir.
+``REQUIRE_SCRIPT``:
+    If present, the start_all.sh/bat file will be copied to the binary dir.
 ``DEPENDENCIES``:
     Other libraries to link.
 
@@ -176,7 +183,7 @@ include(ConnextDdsCodegen)
 
 
 function(connextdds_add_example)
-    set(optional_args DISABLE_SUBSCRIBER NO_REQUIRE_QOS)
+    set(optional_args DISABLE_SUBSCRIBER NO_REQUIRE_QOS REQUIRE_SCRIPT)
     set(single_value_args IDL LANG PREFIX QOS_FILENAME)
     set(multi_value_args CODEGEN_ARGS DEPENDENCIES APPLICATION_NAMES)
     cmake_parse_arguments(_CONNEXT
@@ -237,6 +244,14 @@ function(connextdds_add_example)
         set(no_require_qos)
     endif()
 
+    # Copy the start_all script if required
+    if(_CONNEXT_REQUIRE_SCRIPT)
+        set(require_script REQUIRE_SCRIPT)
+    else()
+        set(require_script)
+    endif()
+
+
     # We will use source code provided to build applications
     # in the repository for the application names specified
     connextdds_sanitize_language(LANG ${_CONNEXT_LANG} VAR lang_var)
@@ -262,6 +277,7 @@ function(connextdds_add_example)
             OUTPUT_NAME "${_APPLICATION_NAME}"
             ${qos_filename}
             ${no_require_qos}
+            ${require_script}
             SOURCES
                 $<TARGET_OBJECTS:${prefix}_${lang_var}_obj>
                 "${${_APPLICATION_NAME}_src}"
@@ -371,7 +387,7 @@ function(connextdds_copy_qos_profile)
         "${multi_value_args}"
         ${ARGN}
     )
-
+message(STATUS "Example QoS filename: ${_EXAMPLE_QOS_FILENAME}")
     if(_EXAMPLE_QOS_FILENAME) 
         set(user_qos_profile_name ${_EXAMPLE_QOS_FILENAME})
     else()
@@ -416,9 +432,68 @@ function(connextdds_copy_qos_profile)
 
 endfunction()
 
+function(connextdds_copy_script)
+    set(optional_args)
+    set(single_value_args TARGET_PREFIX DEPENDANT_TARGET FILENAME)
+    set(multi_value_args)
+
+    cmake_parse_arguments(_EXAMPLE_SCRIPT
+        "${optional_args}"
+        "${single_value_args}"
+        "${multi_value_args}"
+        ${ARGN}
+    )
+
+    if(_EXAMPLE_SCRIPT) 
+        set(script_name ${_EXAMPLE_SCRIPT})
+    elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
+        set(script_name "start_all.bat")
+    elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+        set(script_name "start_all_macos.sh")
+    else()
+        set(script_name "start_all_linux.sh")
+    endif()
+
+    set(script_file "${CMAKE_CURRENT_SOURCE_DIR}/${script_name}")
+
+    if(NOT EXISTS ${script_file})
+        message(FATAL_ERROR "The ${script_name} file was not found")
+    endif()
+
+    set(output_script "${CMAKE_CURRENT_BINARY_DIR}/${script_name}")
+
+    set(target_script "${_EXAMPLE_SCRIPT_TARGET_PREFIX}script")
+
+    if(NOT TARGET ${target_script})
+        # We created a target and it depends of the output file
+        add_custom_target(${target_script}
+            DEPENDS
+                ${output_script}
+        )
+
+        # Add the command to copy the start_all script
+        add_custom_command(
+            OUTPUT
+                ${output_script}
+            COMMAND
+                ${CMAKE_COMMAND} -E copy_if_different
+                    ${script_file}
+                    "${CMAKE_CURRENT_BINARY_DIR}"
+            COMMENT "Copying ${script_name}"
+            DEPENDS
+                ${script_file}
+            VERBATIM
+        )
+    endif()
+message(STATUS "script: ${_EXAMPLE_SCRIPT_DEPENDANT_TARGET} ${target_script}")
+    add_dependencies(${_EXAMPLE_SCRIPT_DEPENDANT_TARGET}
+        ${target_script}
+    )
+
+endfunction()
 
 function(connextdds_add_application)
-    set(optional_args NO_REQUIRE_QOS)
+    set(optional_args NO_REQUIRE_QOS REQUIRE_SCRIPT)
     set(single_value_args TARGET LANG PREFIX OUTPUT_NAME QOS_FILENAME)
     set(multi_value_args SOURCES DEPENDENCIES)
 
@@ -448,10 +523,12 @@ function(connextdds_add_application)
         set(target_name "${_CONNEXT_PREFIX}_${_CONNEXT_TARGET}_${api}")
         set(qos_target "${_CONNEXT_PREFIX}_qos_${api}")
         set(qos_prefix "${_CONNEXT_PREFIX}_${api}")
+        set(script_prefix "${_CONNEXT_PREFIX}_${api}")
     else()
         set(target_name "${_CONNEXT_TARGET}_${api}")
         set(qos_target "qos_${api}")
         set(qos_prefix "${api}")
+        set(script_prefix "${api}")
     endif()
 
     # Create the target
@@ -486,6 +563,20 @@ function(connextdds_add_application)
         else()
             connextdds_copy_qos_profile(
                 TARGET_PREFIX "${qos_prefix}_"
+                DEPENDANT_TARGET "${target_name}")
+        endif()
+
+    endif()
+
+    if(_CONNEXT_REQUIRE_SCRIPT)
+        if (_CONNEXT_SCRIPT)
+            connextdds_copy_script(
+                TARGET_PREFIX "${script_prefix}_"
+                DEPENDANT_TARGET "${target_name}"
+                FILENAME ${_CONNEXT_SCRIPT_FILENAME})
+        else()
+            connextdds_copy_script(
+                TARGET_PREFIX "${script_prefix}_"
                 DEPENDANT_TARGET "${target_name}")
         endif()
 
