@@ -13,21 +13,34 @@ case $os in
     Linux*)
         if hash gnome-terminal &> /dev/null; then
             terminal=gnome-terminal
+            param=--
         elif hash konsole &> /dev/null; then 
             terminal=konsole
+            param=--
         elif hash xterm &> /dev/null; then
             terminal=xterm
+            param=-e
         fi
 
-        if [ -f $bin_dir/$executable_name ]
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+        if [ -f $bin_dir/$executable_name ] 
         then
-            export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-            ${terminal} -- ./$executable_name -k COCOA_BUTTER_CONTROLLER $*
-            ${terminal} -- ./$executable_name -k SUGAR_CONTROLLER $*
-            ${terminal} -- ./$executable_name -k MILK_CONTROLLER $*
-            ${terminal} -- ./$executable_name -k VANILLA_CONTROLLER $*
-            ${terminal} -- ./tempering_application $*
-            ${terminal} -- ./monitoring_ctrl_application $*
+            if [ ${terminal} != 'xterm' ]
+            then
+                ${terminal} ${param} ./$executable_name -k COCOA_BUTTER_CONTROLLER $* 
+                ${terminal} ${param} ./$executable_name -k SUGAR_CONTROLLER $* 
+                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $* 
+                ${terminal} ${param} ./$executable_name -k VANILLA_CONTROLLER $* 
+                ${terminal} ${param} ./tempering_application $* 
+                ${terminal} ${param} ./monitoring_ctrl_application $* 
+            else 
+                ${terminal} ${param} ./$executable_name -k COCOA_BUTTER_CONTROLLER $* &
+                ${terminal} ${param} ./$executable_name -k SUGAR_CONTROLLER $* &
+                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $* & 
+                ${terminal} ${param} ./$executable_name -k VANILLA_CONTROLLER $* &
+                ${terminal} ${param} ./tempering_application $* &
+                ${terminal} ${param} ./monitoring_ctrl_application $* &
+            fi 
         else
             echo "***************************************************************"
             echo $executable_name executable does not exist in:
@@ -38,7 +51,7 @@ case $os in
     ;;
 
     Darwin*)
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k COCOA_BUTTR_CONTROLLER"'
+        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k COCOA_BUTTER_CONTROLLER"'
         osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k SUGAR_CONTROLLER"'
         osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k MILK_CONTROLLER"'
         osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k VANILLA_CONTROLLER"'
