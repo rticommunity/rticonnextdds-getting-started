@@ -9,38 +9,38 @@ bin_dir=${script_dir}
 
 os=`uname -s`
 
-case $os in 
+case $os in
     Linux*)
         if hash gnome-terminal &> /dev/null; then
             terminal=gnome-terminal
             param=--
-        elif hash konsole &> /dev/null; then 
+        elif hash konsole &> /dev/null; then
             terminal=konsole
-            param=--
+            param=-e
         elif hash xterm &> /dev/null; then
             terminal=xterm
             param=-e
         fi
 
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH
-        if [ -f $bin_dir/$executable_name ] 
+        if [ -f $bin_dir/$executable_name ]
         then
-            if [ ${terminal} != 'xterm' ]
+            if [ ${terminal} != 'gnome-terminal' ]
             then
-                ${terminal} ${param} ./$executable_name -k COCOA_BUTTER_CONTROLLER $* 
-                ${terminal} ${param} ./$executable_name -k SUGAR_CONTROLLER $* 
-                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $* 
-                ${terminal} ${param} ./$executable_name -k VANILLA_CONTROLLER $* 
-                ${terminal} ${param} ./tempering_application $* 
-                ${terminal} ${param} ./monitoring_ctrl_application $* 
-            else 
                 ${terminal} ${param} ./$executable_name -k COCOA_BUTTER_CONTROLLER $* &
                 ${terminal} ${param} ./$executable_name -k SUGAR_CONTROLLER $* &
-                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $* & 
+                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $* &
                 ${terminal} ${param} ./$executable_name -k VANILLA_CONTROLLER $* &
                 ${terminal} ${param} ./tempering_application $* &
                 ${terminal} ${param} ./monitoring_ctrl_application $* &
-            fi 
+            else
+                ${terminal} ${param} ./$executable_name -k COCOA_BUTTER_CONTROLLER $*
+                ${terminal} ${param} ./$executable_name -k SUGAR_CONTROLLER $*
+                ${terminal} ${param} ./$executable_name -k MILK_CONTROLLER $*
+                ${terminal} ${param} ./$executable_name -k VANILLA_CONTROLLER $*
+                ${terminal} ${param} ./tempering_application $*
+                ${terminal} ${param} ./monitoring_ctrl_application $*
+            fi
         else
             echo "***************************************************************"
             echo $executable_name executable does not exist in:
