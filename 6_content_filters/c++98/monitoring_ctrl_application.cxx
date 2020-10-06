@@ -18,6 +18,7 @@
 #include "chocolate_factorySupport.h"
 #include "ndds/ndds_cpp.h"
 #include "application.h"
+#include "chocolate_factory_print.h"
 
 using namespace application;
 
@@ -50,7 +51,7 @@ void publish_start_lot(StartLotThreadData *thread_data)
         std::cout << std::endl
                   << "Starting lot: " << std::endl
                   << "[lot_id: " << sample.lot_id << " next_station: ";
-        print_station_kind(sample.next_station);
+        chocolate_factory::print_station_kind(sample.next_station);
         std::cout << "]" << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
@@ -85,7 +86,7 @@ unsigned int monitor_lot_state(ChocolateLotStateDataReader *lot_state_reader)
         // Check if a sample is an instance lifecycle event
         if (info_seq[i].valid_data) {
             std::cout << "Received lot update:" << std::endl;
-            application::print_chocolate_lot_data(data_seq[i]);
+            chocolate_factory::print_chocolate_lot_data(data_seq[i]);
             samples_read++;
         } else {
             // Detect that a lot is complete because the instance is disposed
