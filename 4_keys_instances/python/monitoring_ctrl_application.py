@@ -16,7 +16,7 @@ import pathlib  # for getting the location of the XML file
 import threading  # For multithreading
 import time  # For sleeping
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/chocolate_factory.xml"
+FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
 
 provider = dds.QosProvider(FILE)
 CHOCOLATE_LOT_TYPE = provider.type("ChocolateLotState")
@@ -43,7 +43,7 @@ def publish_start_lot(writer, lots_to_process):
                 "TEMPERING_CONTROLLER"
             ].ordinal
             print(
-                f"Starting lot:\n[lot_id: {sample['lot_id']} next_station: {sample['next_station']}]"
+                f"Starting lot:\n[lot_id: {sample['lot_id']}, next_station: {sample['next_station'].name}]"
             )
 
             # Send an update to station that there is a lot waiting for tempering
@@ -138,7 +138,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
         nonlocal reader
         lots_processed += monitor_lot_state(reader)
 
-    status_condition.handler(handler)
+    status_condition.set_handler(handler)
 
     temperature_status_condition = dds.StatusCondition(reader)
 
@@ -150,7 +150,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
         nonlocal temperature_reader
         monitor_lot_state(temperature_reader)
 
-    temperature_status_condition.handler(temperature_handler)
+    temperature_status_condition.set_handler(temperature_handler)
 
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()
