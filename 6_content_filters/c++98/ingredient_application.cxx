@@ -186,10 +186,9 @@ int run_example(unsigned int domain_id, const std::string& station_kind)
     parameters.length(1);
     char filter_value[256];
     snprintf(filter_value, 256, "\'%s\'", station_kind.c_str());
-    std::cout << "about to set filter_value" << std::endl;
+
     // String sequence owns memory for the strings it contains, must allocate
     parameters[0] = DDS_String_dup(filter_value);
-    std::cout << "done" << std::endl;
     DDSContentFilteredTopic *filtered_lot_state_topic =
             participant->create_contentfilteredtopic(
                     "FilteredLotState",
