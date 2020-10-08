@@ -59,16 +59,19 @@ inline void parse_arguments(
     arguments.parse_result = PARSE_RETURN_OK;
 
     while (arg_processing < argc) {
-        if (strcmp(argv[arg_processing], "-d") == 0
-                || strcmp(argv[arg_processing], "--domain") == 0) {
+        if ((argc > arg_processing + 1)
+            && (strcmp(argv[arg_processing], "-d") == 0
+            || strcmp(argv[arg_processing], "--domain") == 0)) {
             arguments.domain_id = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-s") == 0
-                || strcmp(argv[arg_processing], "--sample-count") == 0) {
+        } else if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-s") == 0
+                || strcmp(argv[arg_processing], "--sample-count") == 0)) {
             arguments.sample_count = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-v") == 0
-                || strcmp(argv[arg_processing], "--verbosity") == 0) {
+        } else if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-v") == 0
+                || strcmp(argv[arg_processing], "--verbosity") == 0)) {
             arguments.verbosity =
                     (NDDS_Config_LogVerbosity) atoi(argv[arg_processing + 1]);
             arg_processing += 2;
@@ -90,7 +93,7 @@ inline void parse_arguments(
                     "    -d, --domain       <int>   Domain ID this application will\n" \
                     "                               subscribe in.  \n"
                     "                               Default: 0\n"\
-                    "    -s, --sample_count <int>   Number of samples to receive before\n"\
+                    "    -s, --sample-count <int>   Number of samples to receive before\n"\
                     "                               cleanly shutting down. \n"
                     "                               Default: infinite\n"
                     "    -v, --verbosity    <int>   How much debugging output to show.\n"\
