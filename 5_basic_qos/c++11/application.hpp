@@ -64,22 +64,26 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     rti::config::Verbosity verbosity;
 
     while (arg_processing < argc) {
-        if (strcmp(argv[arg_processing], "-d") == 0
-                || strcmp(argv[arg_processing], "--domain") == 0) {
+        if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-d") == 0
+                || strcmp(argv[arg_processing], "--domain") == 0)) {
             domain_id = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-s") == 0
-                || strcmp(argv[arg_processing], "--sample-count") == 0) {
+        } else if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-s") == 0
+                || strcmp(argv[arg_processing], "--sample-count") == 0)) {
             sample_count = atoi(argv[arg_processing + 1]);
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-v") == 0
-                || strcmp(argv[arg_processing], "--verbosity") == 0) {
+        } else if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-v") == 0
+                || strcmp(argv[arg_processing], "--verbosity") == 0)) {
             verbosity =
                     static_cast<rti::config::Verbosity::inner_enum>(
                             atoi(argv[arg_processing + 1]));
             arg_processing += 2;
-        } else if (strcmp(argv[arg_processing], "-i") == 0
-                || strcmp(argv[arg_processing], "--sensor-id") == 0) {
+        } else if ((argc > arg_processing + 1)
+                && (strcmp(argv[arg_processing], "-i") == 0
+                || strcmp(argv[arg_processing], "--sensor-id") == 0)) {
             sensor_id = argv[arg_processing + 1];
             arg_processing += 2;
         } else if (strcmp(argv[arg_processing], "-h") == 0
@@ -100,7 +104,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                     "    -d, --domain       <int>   Domain ID this application will\n" \
                     "                               subscribe in.  \n"
                     "                               Default: 0\n"\
-                    "    -s, --sample_count <int>   Number of samples to receive before\n"\
+                    "    -s, --sample-count <int>   Number of samples to receive before\n"\
                     "                               cleanly shutting down. \n"
                     "                               Default: infinite\n"
                     "                               cleanly shutting down. \n"
