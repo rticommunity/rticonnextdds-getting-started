@@ -245,7 +245,7 @@ int run_example(unsigned int domain_id, const std::string& station_kind)
     // "ChocolateLotState" using ChocolateLotStateProfile QoS profile
     DDSDataReader *generic_lot_state_reader =
             subscriber->create_datareader_with_profile(
-                    lot_state_topic,
+                    filtered_lot_state_topic,
                     "ChocolateFactoryLibrary",
                     "ChocolateLotStateProfile",
                     NULL,
