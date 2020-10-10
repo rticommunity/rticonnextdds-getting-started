@@ -17,7 +17,7 @@ import threading  # for multithreading
 import time  # for sleeping
 import random  # to generate random data points
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/chocolate_factory.xml"
+FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
 
 provider = dds.QosProvider(FILE)
 
@@ -144,13 +144,13 @@ def run_example(domain_id, sensor_id):
         process_lot(lot_state_reader, lot_state_writer)
 
     # Create a WaitSet and attach the StatusCondition
-    status_condition.handler(handler)
+    status_condition.set_handler(handler)
 
     waitset = dds.WaitSet()
     waitset += status_condition
 
     # Create a thread to periodically publish the temperature
-    print(f"ChocolateTemperature Sensor with ID: {sensor_id} staring")
+    print(f"ChocolateTemperature Sensor with ID: {sensor_id} starting")
     temperature_thread = threading.Thread(
         target=publish_temperature, args=(temperature_writer, sensor_id)
     )

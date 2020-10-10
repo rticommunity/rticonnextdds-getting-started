@@ -15,7 +15,7 @@ import argparse  # for argument parsing
 import time  # for sleeping
 import pathlib  # for getting the absolute path of this file to find the XML file
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/" + "HelloWorld.xml"
+FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../hello_world.xml"
 
 
 def run_example(domain_id, sample_count):

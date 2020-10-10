@@ -15,7 +15,7 @@ import argparse  # for arg parsing
 import time  # for sleep
 import pathlib  # for finding the xml file
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/" + "HelloWorld.xml"
+FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../hello_world.xml"
 
 
 def process_data(reader):
@@ -76,7 +76,7 @@ def run_example(domain_id, sample_count):
             nonlocal reader
             samples_read += process_data(reader)
 
-        status_condition.handler(handler)
+        status_condition.set_handler(handler)
 
         # Create a WaitSet and attach the StatusCondition
         waitset = dds.WaitSet()

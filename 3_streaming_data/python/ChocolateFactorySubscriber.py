@@ -17,12 +17,7 @@ import random  # for generating random numbers
 import argparse  # for arg parsing
 import time  # for sleeping
 
-FILE = (
-    str(pathlib.Path(__file__).parent.absolute())
-    + "/"
-    + "chocolate_factory.xml"
-)
-
+FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
 
 def process_data(reader):
     # Take all samples.  Samples are loaned to application, loan is
@@ -46,9 +41,9 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic named
     # "ChocolateTemperature" with type Temperature
-    provider_type = dds.QosProvider(FILE).type("Temperature")
+    temperature_type = dds.QosProvider(FILE).type("Temperature")
     topic = dds.DynamicData.Topic(
-        participant, "ChocolateTemperature", provider_type
+        participant, "ChocolateTemperature", temperature_type
     )
 
     # A Subscriber allows an application to create one or more DataReaders
@@ -75,7 +70,7 @@ def run_example(domain_id, sample_count, sensor_id):
         nonlocal reader
         samples_read += process_data(reader)
 
-    status_condition.handler(handler)
+    status_condition.set_handler(handler)
 
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()
