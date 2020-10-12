@@ -46,10 +46,17 @@ void publish_temperature(const TemperatureWriteData *write_data)
     Temperature temperature;
     TemperatureTypeSupport::initialize_data(&temperature);
 
+    int counter = 0;
     while (!shutdown_requested) {
-        // Modify the data to be written here
-        snprintf(temperature.sensor_id, 255, "%s", write_data->sensor_id);
-        temperature.degrees = rand() % 3 + 30;  // Random num between 30 and 32
+        counter++;
+        // Occasionally make the temperature high
+        if (counter % 400 == 0) {
+            std::cout << "Temperature too high" << std::endl;
+            temperature.degrees = 33;
+        } else {
+            snprintf(temperature.sensor_id, 255, "%s", write_data->sensor_id);
+            temperature.degrees = rand() % 3 + 30;  // Random num between 30 and 32
+        }
 
         DDS_ReturnCode_t retcode = writer->write(temperature, DDS_HANDLE_NIL);
         if (retcode != DDS_RETCODE_OK) {

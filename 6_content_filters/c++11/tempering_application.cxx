@@ -41,8 +41,8 @@ void publish_temperature(
         // Modify the data to be written here
         temperature.sensor_id(sensor_id);
         // Occasionally make the temperature high
-        if (counter % 100 == 0) {
-            std::cout << "Temperature too high, notifying controller" << std::endl;
+        if (counter % 400 == 0) {
+            std::cout << "Temperature too high" << std::endl;
             temperature.degrees(33);
         } else {
             temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
