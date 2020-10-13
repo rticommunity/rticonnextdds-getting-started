@@ -9,16 +9,6 @@ bin_dir=${script_dir}
 
 os=`uname -s`
 
-# No clear way to pass all additional arguments to OSX, pass manually
-function osxterm {
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k COCOA_BUTTER_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k SUGAR_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k MILK_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k VANILLA_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./tempering_application '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-        osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./monitoring_ctrl_application '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
-}
-
 
 case $os in
     Linux*)
@@ -62,8 +52,13 @@ case $os in
     ;;
 
     Darwin*)
-        echo "calling osxterm with $@"
-        osxterm $@
+        # No clear way to pass all additional arguments to OSX, pass manually
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k COCOA_BUTTER_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k SUGAR_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k MILK_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./ingredient_application -k VANILLA_CONTROLLER '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./tempering_application '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
+	osascript -e 'tell application "Terminal" to do script "cd '$(pwd)';./monitoring_ctrl_application '$1' '$2' '$3' '$4' '$5' '$6' '$7'"'
     ;;
 
 esac
