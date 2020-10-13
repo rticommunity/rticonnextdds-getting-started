@@ -48,45 +48,46 @@ void process_lot(
     if (retcode != DDS_RETCODE_OK && retcode != DDS_RETCODE_NO_DATA) {
         std::cerr << "take error " << retcode << std::endl;
         return;
+    } else if (retcode == DDS_RETCODE_NO_DATA) {
+        return;
     }
 
     // Process lots waiting for ingredients
     for (int i = 0; i < data_seq.length(); ++i) {
         // Check if a sample is an instance lifecycle event
-        if (info_seq[i].valid_data) {
-            // No need to check that this is the next station: content filter
-            // ensures that the reader only receives lots with
-            // next_station == this station.
-            std::cout << "Processing lot #" << data_seq[i].lot_id << std::endl;
-
-            // Send an update that the this station is processing lot
-            ChocolateLotState updated_state(data_seq[i]);
-            updated_state.lot_status = PROCESSING;
-            updated_state.next_station = INVALID_CONTROLLER;
-            updated_state.station = station_kind;
-            DDS_ReturnCode_t retcode =
-                    lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "write error " << retcode << std::endl;
-            }
-
-            // "Processing" the lot.
-            DDS_Duration_t processing_time = { 5, 0 };
-            NDDSUtility::sleep(processing_time);
-
-            // Send an update that this station is done processing the lot
-            updated_state.lot_status = COMPLETED;
-            updated_state.next_station = (StationKind)(station_kind + 1);
-            updated_state.station = station_kind;
-            retcode = lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
-            if (retcode != DDS_RETCODE_OK) {
-                std::cerr << "write error " << retcode << std::endl;
-            }
-
-        } else {
-            // Received instance state notification
+        if (!info_seq[i].valid_data) {
+            // Received instance state update
             continue;
         }
+        // No need to check that this is the next station: content filter
+        // ensures that the reader only receives lots with
+        // next_station == this station.
+        std::cout << "Processing lot #" << data_seq[i].lot_id << std::endl;
+
+        // Send an update that the this station is processing lot
+        ChocolateLotState updated_state(data_seq[i]);
+        updated_state.lot_status = PROCESSING;
+        updated_state.next_station = INVALID_CONTROLLER;
+        updated_state.station = station_kind;
+        DDS_ReturnCode_t retcode =
+                lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "write error " << retcode << std::endl;
+        }
+
+        // "Processing" the lot.
+        DDS_Duration_t processing_time = { 5, 0 };
+        NDDSUtility::sleep(processing_time);
+
+        // Send an update that this station is done processing the lot
+        updated_state.lot_status = COMPLETED;
+        updated_state.next_station = (StationKind)(station_kind + 1);
+        updated_state.station = station_kind;
+        retcode = lot_state_writer->write(updated_state, DDS_HANDLE_NIL);
+        if (retcode != DDS_RETCODE_OK) {
+            std::cerr << "write error " << retcode << std::endl;
+        }
+
     }
 
     // Data sequence was loaned from middleware for performance.
