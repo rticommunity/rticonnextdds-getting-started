@@ -4,7 +4,7 @@ filename=$0
 arch=$1
 script_dir=`dirname $filename`
 executable_name="ingredient_application"
-bin_dir=${script_dir}
+bin_dir=$script_dir
 
 
 os=`uname -s`
