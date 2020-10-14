@@ -40,7 +40,7 @@ void process_lot(
     dds::sub::LoanedSamples<ChocolateLotState> samples =
             lot_state_reader.take();
 
-    // Process lots waiting for tempering
+    // Process lots waiting for ingredients
     for (const auto& sample : samples) {
         if (!sample.info().valid() || shutdown_requested) {
             break;
@@ -104,7 +104,7 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
     dds::domain::DomainParticipant participant(
             domain_id,
             qos_provider.participant_qos(
-                    "ChocolateFactoryLibrary::TemperingApplication"));
+                    "ChocolateFactoryLibrary::IngredientApplication"));
 
     // A Topic has a name and a datatype. Create Topics.
     // Topic names are constants defined in the IDL file.
@@ -178,9 +178,9 @@ int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
     auto arguments = parse_arguments(argc, argv);
-    if (arguments.parse_result == ParseReturn::PARSE_RETURN_EXIT) {
+    if (arguments.parse_result == ParseReturn::exit) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::PARSE_RETURN_FAILURE) {
+    } else if (arguments.parse_result == ParseReturn::failure) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();

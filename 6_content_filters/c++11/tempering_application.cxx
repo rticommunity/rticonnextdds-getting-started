@@ -41,8 +41,8 @@ void publish_temperature(
         // Modify the data to be written here
         temperature.sensor_id(sensor_id);
         // Occasionally make the temperature high
-        if (counter % 100 == 0) {
-            std::cout << "Temperature too high, notifying controller" << std::endl;
+        if (counter % 400 == 0) {
+            std::cout << "Temperature too high" << std::endl;
             temperature.degrees(33);
         } else {
             temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
@@ -219,9 +219,9 @@ int main(int argc, char *argv[])
 {
     // Parse arguments and handle control-C
     auto arguments = parse_arguments(argc, argv);
-    if (arguments.parse_result == ParseReturn::PARSE_RETURN_EXIT) {
+    if (arguments.parse_result == ParseReturn::exit) {
         return EXIT_SUCCESS;
-    } else if (arguments.parse_result == ParseReturn::PARSE_RETURN_FAILURE) {
+    } else if (arguments.parse_result == ParseReturn::failure) {
         return EXIT_FAILURE;
     }
     setup_signal_handlers();
