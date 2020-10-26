@@ -127,7 +127,8 @@ void monitor_temperature(TemperatureDataReader *temperature_reader)
         return;
     }
 
-    // Iterate over all available data
+    // Receive updates from tempering station about chocolate temperature.
+    // Only an error if below 30 or over 32 degrees Fahrenheit.
     for (int i = 0; i < data_seq.length(); ++i) {
         // Check if a sample is an instance lifecycle event
         if (!info_seq[i].valid_data) {

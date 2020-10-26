@@ -83,18 +83,18 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
 // Add monitor_temperature function
 void monitor_temperature(dds::sub::DataReader<Temperature>& reader)
 {
-   // Take all samples.  Samples are loaned to application, loan is
-   // returned when LoanedSamples destructor called.
-   dds::sub::LoanedSamples<Temperature> samples = reader.take();
+    // Take all samples.  Samples are loaned to application, loan is
+    // returned when LoanedSamples destructor called.
+    dds::sub::LoanedSamples<Temperature> samples = reader.take();
 
-   // Receive updates from tempering station about chocolate temperature.
-   // Only an error if over 32 degrees Fahrenheit.
-   for (const auto& sample : samples) {
-       if (sample.info().valid()) {
-            std::cout << "Tempering temperature out of range: "
-                      << sample.data() << std::endl;
+    // Receive updates from tempering station about chocolate temperature.
+    // Only an error if below 30 or over 32 degrees Fahrenheit.
+    for (const auto& sample : samples) {
+        if (sample.info().valid()) {
+            std::cout << "Tempering temperature out of range: " << sample.data()
+                      << std::endl;
        }
-   }
+    }
 }
 
 void run_example(unsigned int domain_id, unsigned int lots_to_process)
