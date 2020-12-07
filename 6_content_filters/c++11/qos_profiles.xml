@@ -69,24 +69,7 @@
             the built-in profile "BuiltinQosLib::Pattern.Streaming"
         -->
         <qos_profile name="ChocolateTemperatureProfile"
-                base_name="BuiltinQosLib::Pattern.Streaming">
-
-            <!-- QoS specified to override the QoS in the base profile.
-                 Configuration for ChocolateTemperature DataWriters -->
-            <datawriter_qos>
-                <publication_name>
-                    <name>ChocolateTemperatureDataWriter</name>
-                </publication_name>
-            </datawriter_qos>
-
-            <!-- QoS specified to override the QoS in the base profile. 
-                 Configuration for ChocolateTemperature DataReaders -->
-            <datareader_qos>
-                <subscription_name>
-                    <name>ChocolateTemperatureDataReader</name>
-                </subscription_name>
-            </datareader_qos>
-        </qos_profile>
+                base_name="BuiltinQosLib::Pattern.Streaming"/>
 
         <!-- 
             QoS profile used to configure streaming communication between
@@ -98,24 +81,7 @@
             inherits from the built-in profile "BuiltinQosLib::Pattern.Status"
         -->
         <qos_profile name="ChocolateLotStateProfile"
-                     base_name="BuiltinQosLib::Pattern.Status">
-            <!-- QoS specified to override the QoS in the base profile.
-                 Configuration for ChocolateLotState DataWriters. -->
-            <datawriter_qos>
-                <publication_name>
-                    <name>ChocolateLotStateDataWriter</name>
-                </publication_name>
-            </datawriter_qos>
-
-            <!-- QoS specified to override the QoS in the base profile. 
-                 Configuration for ChocolateLotState DataReaders. -->
-            <datareader_qos>
-                <subscription_name>
-                    <name>ChocolateLotStateDataReader</name>
-                </subscription_name>
-            </datareader_qos>
-
-        </qos_profile>
+                     base_name="BuiltinQosLib::Pattern.Status"/>
 
     </qos_library>
 </dds>
