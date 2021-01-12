@@ -79,10 +79,10 @@ namespace StreamingData
                 writer.Write(sample);
 
                 // Exercise #2.3 Write data with new ChocolateLotState DataWriter
-                lotStateWriter.SetValue("lot_id", count % 100);
+                lotStateSample.SetValue("lot_id", count % 100);
                 // SetAnyValue performs type conversions. In this case it can
                 // translate a string to the corresponding enumerator.
-                lotStateWriter.SetAnyValue("lot_status", "WAITING");
+                lotStateSample.SetAnyValue("lot_status", "WAITING");
                 lotStateWriter.Write(lotStateSample);
 
                 // Exercise #1.1: Change this to sleep 100 ms in between writing temperatures

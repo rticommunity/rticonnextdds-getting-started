@@ -66,6 +66,9 @@ namespace KeysInstances
             DataReader<ChocolateLotState> lotStateReader,
             DataWriter<ChocolateLotState> lotStateWriter)
         {
+            // Take all samples. Samples are loaned to application, loan is
+            // returned when LoanedSamples is Disposed. ValidData iterates only over
+            // samples such that sample.Info.ValidData is true.
             using var samples = lotStateReader.Take();
             foreach (var sample in samples.ValidData)
             {
@@ -91,6 +94,7 @@ namespace KeysInstances
                     // using a dispose
                     var instanceHandle = lotStateWriter.LookupInstance(updatedState);
                     lotStateWriter.DisposeInstance(instanceHandle);
+                    Console.WriteLine("Lot completed");
                 }
             }
         }
