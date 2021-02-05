@@ -117,7 +117,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
                     "                                cleanly shutting down. \n"
                     "    -i, --sensor-id    <string> Unique ID of temperature sensor.\n"\
                     "                                Used only by tempering application.\n"\
-                    "    -k, --station-kind <int>    The type of ingredient station to start.\n"\
+                    "    -k, --station-kind <string> The type of ingredient station to start.\n"\
                     "                                Used only by ingredient application.\n"\
                     "                                Values:\n"\
                     "                                   COCOA_BUTTER_CONTROLLER,\n"\

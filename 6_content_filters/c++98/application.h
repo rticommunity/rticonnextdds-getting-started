@@ -180,23 +180,23 @@ inline void parse_arguments(
     }
     if (show_usage) {
         std::cout << "Usage:\n"\
-                    "    -d, --domain       <int>   Domain ID this application will\n" \
-                    "                               subscribe in.  \n"
-                    "                               Default: 0\n"\
-                    "    -s, --sample-count <int>   Number of samples to receive before\n"\
-                    "                               cleanly shutting down. \n"
-                    "                               Default: infinite\n"
-                    "    -i, --sensor-id   <string> Unique ID of temperature sensor.\n"\
-                    "    -k, --station-kind <int>    The type of ingredient station to start.\n"\
+                    "    -d, --domain       <int>    Domain ID this application will\n" \
+                    "                                subscribe in.  \n"
+                    "                                Default: 0\n"\
+                    "    -s, --sample-count <int>    Number of samples to receive before\n"\
+                    "                                cleanly shutting down. \n"
+                    "                                Default: infinite\n"
+                    "    -i, --sensor-id    <string> Unique ID of temperature sensor.\n"\
+                    "    -k, --station-kind <string> The type of ingredient station to start.\n"\
                     "                                Used only by ingredient application.\n"\
                     "                                Values:\n"\
                     "                                   COCOA_BUTTER_CONTROLLER,\n"\
                     "                                   SUGAR_CONTROLLER,\n"\
                     "                                   MILK_CONTROLLER,\n"\
                     "                                   VANILLA_CONTROLLER\n"\
-                    "    -v, --verbosity    <int>   How much debugging output to show.\n"\
-                    "                               Range: 0-5 \n"
-                    "                               Default: 0"
+                    "    -v, --verbosity    <int>    How much debugging output to show.\n"\
+                    "                                Range: 0-5 \n"
+                    "                                Default: 0"
                 << std::endl;
     }
 }
