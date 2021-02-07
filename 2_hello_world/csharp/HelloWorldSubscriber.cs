@@ -19,36 +19,35 @@ using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
-namespace HelloWorld
+namespace HelloWorldExample
 {
     /// <summary>
     /// Example subscriber application
     /// </summary>
     public static class HelloWorldSubscriber
     {
-        private static int ProcessData(DataReader<DynamicData> reader)
+        private static int ProcessData(DataReader<HelloWorld> reader)
         {
             // Take all samples. Samples are loaned to application, loan is
-            // returned when samples is Disposed.
+            // returned when the samples variable is Disposed.
             int samplesRead = 0;
             using var samples = reader.Take();
-            foreach (var sample in samples.ValidData)
+            foreach (var sample in samples)
             {
-                Console.WriteLine($"Received: {sample}");
-                samplesRead++;
+                if (sample.Info.ValidData)
+                {
+                    Console.WriteLine(sample.Data);
+                    samplesRead++;
+                }
             }
 
             return samplesRead;
         }
 
         /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sample-count 5
+        /// Runs the subscriber example
         /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to receive before exiting</param>
-        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
+        public static void RunSubscriber(int domainId = 0, int sampleCount = int.MaxValue)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -57,25 +56,19 @@ namespace HelloWorld
             // A participant needs to be Disposed to release middleware resources.
             // The 'using' keyword indicates that it will be Disposed when this
             // scope ends.
-            using DomainParticipant participant = DomainParticipantFactory.Instance
-                .CreateParticipant(domainId);
+            using DomainParticipant participant = DomainParticipantFactory.Instance.CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype. Create dynamically-typed
-            // Topic named "HelloWorld Topic" with the type definition of
-            // "HelloWorld" in hello_world.xml. To get the type we use a QosProvider
-            var provider = new QosProvider("../hello_world.xml");
-            Topic<DynamicData> topic = participant.CreateTopic(
-                "Example HelloWorld",
-                provider.GetType("HelloWorld"));
+            // A Topic has a name and a datatype.
+            Topic<HelloWorld> topic = participant.CreateTopic<HelloWorld>("Example HelloWorld}");
 
             // A Subscriber allows an application to create one or more DataReaders
             // Subscriber QoS is configured in USER_QOS_PROFILES.xml
             Subscriber subscriber = participant.CreateSubscriber();
 
             // This DataReader reads data of type Temperature on Topic
-            // "ChocolateTemperature". DataReader QoS is configured in
+            // "Example HelloWorld". DataReader QoS is configured in
             // USER_QOS_PROFILES.xml
-            DataReader<DynamicData> reader = subscriber.CreateDataReader(topic);
+            DataReader<HelloWorld> reader = subscriber.CreateDataReader(topic);
 
             // Obtain the DataReader's Status Condition
             StatusCondition statusCondition = reader.StatusCondition;

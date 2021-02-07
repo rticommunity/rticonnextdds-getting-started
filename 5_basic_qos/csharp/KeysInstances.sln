@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactoryPublisher", "ChocolateFactoryPublisher\ChocolateFactoryPublisher.csproj", "{8CA3A8C9-09BA-4075-9CCE-538780D51C03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitoringCtrlApplication", "MonitoringCtrlApplication\MonitoringCtrlApplication.csproj", "{8CA3A8C9-09BA-4075-9CCE-538780D51C03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactorySubscriber", "ChocolateFactorySubscriber\ChocolateFactorySubscriber.csproj", "{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemperingApplication", "TemperingApplication\TemperingApplication.csproj", "{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactoryTypes", "ChocolateFactoryTypes\ChocolateFactoryTypes.csproj", "{CAE6ECDE-86E4-4CB8-B641-022539045552}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{0AF0B3C3-E690-4519-9D90-D4CA8436D857}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,17 +58,17 @@ Global
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x64.Build.0 = Release|Any CPU
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x86.ActiveCfg = Release|Any CPU
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x86.Build.0 = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|x64.Build.0 = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Debug|x86.Build.0 = Debug|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|x64.ActiveCfg = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|x64.Build.0 = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|x86.ActiveCfg = Release|Any CPU
-		{CAE6ECDE-86E4-4CB8-B641-022539045552}.Release|x86.Build.0 = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|x64.Build.0 = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Debug|x86.Build.0 = Debug|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|x64.ActiveCfg = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|x64.Build.0 = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|x86.ActiveCfg = Release|Any CPU
+		{0AF0B3C3-E690-4519-9D90-D4CA8436D857}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

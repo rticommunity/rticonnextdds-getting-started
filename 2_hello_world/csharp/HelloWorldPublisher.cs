@@ -18,7 +18,7 @@ using Rti.Dds.Publication;
 using Rti.Dds.Topics;
 using Rti.Types.Dynamic;
 
-namespace HelloWorld
+namespace HelloWorldExample
 {
     /// <summary>
     /// Example publisher application
@@ -26,13 +26,9 @@ namespace HelloWorld
     public static class HelloWorldPublisher
     {
         /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sample-count 5
+        /// Runs the publisher example
         /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to publish</param>
-        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
+        public static void RunPublisher(int domainId, int sampleCount)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -41,30 +37,24 @@ namespace HelloWorld
             // A participant needs to be Disposed to release middleware resources.
             // The 'using' keyword indicates that it will be Disposed when this
             // scope ends.
-            using DomainParticipant participant = DomainParticipantFactory.Instance
-                .CreateParticipant(domainId);
+            using DomainParticipant participant = DomainParticipantFactory.Instance.CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype. Create dynamically-typed
-            // Topic named "HelloWorld Topic" with the type definition of
-            // "HelloWorld" in hello_world.xml. To get the type we use a QosProvider
-            var provider = new QosProvider("../hello_world.xml");
-            Topic<DynamicData> topic = participant.CreateTopic(
-                "Example HelloWorld",
-                provider.GetType("HelloWorld"));
+            // A Topic has a name and a datatype.
+            Topic<HelloWorld> topic = participant.CreateTopic<HelloWorld>("Example HelloWorld");
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
             Publisher publisher = participant.CreatePublisher();
 
-            // This DataWriter will write data on Topic "HelloWorld Topic"
+            // This DataWriter will write data on Topic "Example HelloWorld"
             // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-            DataWriter<DynamicData> writer = publisher.CreateDataWriter(topic);
+            DataWriter<HelloWorld> writer = publisher.CreateDataWriter(topic);
 
-            var sample = writer.CreateData();
+            var sample = new HelloWorld();
             for (int count = 0; count < sampleCount; count++)
             {
-                // Modify the data to be written here
-                sample.SetValue("msg", $"Hello {count}");
+                // Modify the data to be sent here
+                sample.msg = count;
 
                 Console.WriteLine($"Writing {sample}");
                 writer.Write(sample);
