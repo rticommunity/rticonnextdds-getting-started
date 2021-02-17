@@ -31,13 +31,15 @@ namespace HelloWorldExample
             // Take all samples. Samples are loaned to application, loan is
             // returned when the samples variable is Disposed.
             int samplesRead = 0;
-            using var samples = reader.Take();
-            foreach (var sample in samples)
+            using (var samples = reader.Take())
             {
-                if (sample.Info.ValidData)
+                foreach (var sample in samples)
                 {
-                    Console.WriteLine(sample.Data);
-                    samplesRead++;
+                    if (sample.Info.ValidData)
+                    {
+                        Console.WriteLine(sample.Data);
+                        samplesRead++;
+                    }
                 }
             }
 
@@ -59,7 +61,7 @@ namespace HelloWorldExample
             using DomainParticipant participant = DomainParticipantFactory.Instance.CreateParticipant(domainId);
 
             // A Topic has a name and a datatype.
-            Topic<HelloWorld> topic = participant.CreateTopic<HelloWorld>("Example HelloWorld}");
+            Topic<HelloWorld> topic = participant.CreateTopic<HelloWorld>("Example HelloWorld");
 
             // A Subscriber allows an application to create one or more DataReaders
             // Subscriber QoS is configured in USER_QOS_PROFILES.xml

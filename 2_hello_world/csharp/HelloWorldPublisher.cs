@@ -39,7 +39,8 @@ namespace HelloWorldExample
             // scope ends.
             using DomainParticipant participant = DomainParticipantFactory.Instance.CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype.
+            // A Topic has a name and a datatype. Create a Topic named
+            // "HelloWorld Topic" with type HelloWorld
             Topic<HelloWorld> topic = participant.CreateTopic<HelloWorld>("Example HelloWorld");
 
             // A Publisher allows an application to create one or more DataWriters
@@ -54,9 +55,9 @@ namespace HelloWorldExample
             for (int count = 0; count < sampleCount; count++)
             {
                 // Modify the data to be sent here
-                sample.msg = count;
 
-                Console.WriteLine($"Writing {sample}");
+                Console.WriteLine($"Writing HelloWorld, count {count}");
+
                 writer.Write(sample);
 
                 Thread.Sleep(1000);
