@@ -20,23 +20,15 @@ using Rti.Dds.Domain;
 using Rti.Dds.Publication;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
 namespace KeysInstances
 {
-    // This Preview Release doesn't support IDL types yet. The example uses
-    // XML-defined dynamically-loaded types. Topics for such types use DynamicData
-    using Temperature = DynamicData;
-    using ChocolateLotState = DynamicData;
-
     /// <summary>
-    /// Example subscriber application
+    /// TemperingApplication
     /// </summary>
-    public class TemperatureSubscriber
+    public class TemperingApplication
     {
         private readonly Random rand = new Random();
-        private readonly Utils.ChocolateFactoryTypes types =
-            new Utils.ChocolateFactoryTypes();
         private bool shutdownRequested;
 
         private void PublishTemperature(
@@ -48,13 +40,13 @@ namespace KeysInstances
             while (!shutdownRequested)
             {
                 // Modify the data to be written here
-                temperature.SetValue("sensor_id", sensorId);
+                temperature.sensor_id = sensorId;
 
                 // Currently we don't send above 32 degrees, to make the output
                 // in the MonitoringCtrlApplication more readable. Increase the
                 // range here to see the temperature printed in the
                 // MonitoringCtrlApplication
-                temperature.SetValue("degrees", rand.Next(30, 33));
+                temperature.degrees = rand.Next(30, 33);
 
                 writer.Write(temperature);
 
@@ -70,20 +62,19 @@ namespace KeysInstances
             // returned when LoanedSamples is Disposed. ValidData iterates only over
             // samples such that sample.Info.ValidData is true.
             using var samples = lotStateReader.Take();
-            foreach (var sample in samples.ValidData)
+            foreach (var sample in samples.ValidData())
             {
-                if (sample.GetInt32Value("next_station") ==
-                        types.StationKind.GetMember("TEMPERING_CONTROLLER").Ordinal)
+                if (sample.next_station == StationKind.TEMPERING_CONTROLLER)
                 {
-                    uint lotId = sample.GetUInt32Value("lot_id");
-                    Console.WriteLine($"Processing lot #{lotId}");
+                    Console.WriteLine($"Processing lot #" + sample.lot_id);
 
                     // Send an update that the tempering station is processing lot
-                    var updatedState = lotStateWriter.CreateData();
-                    updatedState.SetValue("lot_id", lotId);
-                    updatedState.SetAnyValue("lot_status", "PROCESSING");
-                    updatedState.SetAnyValue("next_station", "INVALID_CONTROLLER");
-                    updatedState.SetAnyValue("station", "TEMPERING_CONTROLLER");
+                    var updatedState = new ChocolateLotState(sample)
+                    {
+                        lot_status = LotStatusKind.PROCESSING,
+                        next_station = StationKind.INVALID_CONTROLLER,
+                        station = StationKind.TEMPERING_CONTROLLER
+                    };
                     lotStateWriter.Write(updatedState);
 
                     // "Processing" the lot.
@@ -92,9 +83,6 @@ namespace KeysInstances
                     // Exercise #3.1: Since this is the last step in processing,
                     // notify the monitoring application that the lot is complete
                     // using a dispose
-                    var instanceHandle = lotStateWriter.LookupInstance(updatedState);
-                    lotStateWriter.DisposeInstance(instanceHandle);
-                    Console.WriteLine("Lot completed");
                 }
             }
         }
@@ -107,15 +95,11 @@ namespace KeysInstances
             DomainParticipant participant = DomainParticipantFactory.Instance
                 .CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype. Create Topics using the types
-            // defined in chocolate_factory.xml
-            var provider = new QosProvider("../chocolate_factory.xml");
-            Topic<Temperature> temperatureTopic = participant.CreateTopic(
-                "ChocolateTemperature",
-                types.Temperature);
-            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic(
-                "ChocolateLotState",
-                types.ChocolateLotState);
+            // A Topic has a name and a datatype.
+            Topic<Temperature> temperatureTopic = participant.CreateTopic<Temperature>(
+                "ChocolateTemperature");
+            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
+                "ChocolateLotState");
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -178,7 +162,7 @@ namespace KeysInstances
         /// <param name="sensorId">Identifies the sensor ID used in the example</param>
         public static void Main(int domainId = 0, string sensorId = "default_id")
         {
-            var example = new TemperatureSubscriber();
+            var example = new TemperingApplication();
 
             // Setup signal handler
             Console.CancelKeyPress += (_, eventArgs) =>

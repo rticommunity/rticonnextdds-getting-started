@@ -21,22 +21,14 @@ using Rti.Dds.Domain;
 using Rti.Dds.Publication;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
 namespace KeysInstances
 {
-    // This Preview Release doesn't support IDL types yet. The example uses
-    // XML-defined dynamically-loaded types. Topics for such types use DynamicData
-    using Temperature = DynamicData;
-    using ChocolateLotState = DynamicData;
-
     /// <summary>
-    /// Example publisher application
+    /// MonitoringCtrlApplication application
     /// </summary>
     public class MonitoringCtrlApplication
     {
-        private readonly Utils.ChocolateFactoryTypes types =
-            new Utils.ChocolateFactoryTypes();
         private bool shutdownRequested;
 
         private void PublishStartLot(
@@ -46,11 +38,12 @@ namespace KeysInstances
             var sample = writer.CreateData();
             for (uint count = 0; !shutdownRequested && count < lotsToProcess; count++)
             {
-                sample.SetValue("lot_id", count % 100);
-                sample.SetAnyValue("lot_status", "WAITING");
-                sample.SetAnyValue("next_station", "TEMPERING_CONTROLLER");
+                sample.lot_id = count % 100;
+                sample.lot_status = LotStatusKind.WAITING;
+                sample.next_station = StationKind.TEMPERING_CONTROLLER;
 
-                Console.WriteLine($"\nStarting lot:\n{sample}");
+                Console.WriteLine("Starting lot:");
+                Console.WriteLine($"[lot_id: {sample.lot_id} next_station: {sample.next_station}]");
                 writer.Write(sample);
 
                 Thread.Sleep(8000);
@@ -63,7 +56,7 @@ namespace KeysInstances
             using var samples = reader.Take();
             foreach (var sample in samples)
             {
-                Console.WriteLine("Received Lot Update: ");
+                Console.WriteLine("Received lot update: ");
                 if (sample.Info.ValidData)
                 {
                     Console.WriteLine(sample.Data);
@@ -73,14 +66,6 @@ namespace KeysInstances
                 {
                     // Exercise #3.2: Detect that a lot is complete by checking for
                     // the disposed state.
-                    if (sample.Info.State.Instance == InstanceState.NotAliveDisposed)
-                    {
-                        // Create a sample to fill in the key values associated
-                        // with the instance
-                        var keyHolder = new ChocolateLotState(types.ChocolateLotState);
-                        reader.GetKeyValue(keyHolder, sample.Info.InstanceHandle);
-                        Console.WriteLine($"[lot_id: {keyHolder.GetUInt32Value("lot_id")} is completed]");
-                    }
                 }
             }
 
@@ -88,19 +73,6 @@ namespace KeysInstances
         }
 
         // Exercise #4.4: Add monitor_temperature function
-        private void MonitorTemperature(DataReader<Temperature> reader)
-        {
-            using var samples = reader.Take();
-            foreach (var data in samples.ValidData)
-            {
-                // A new exercise will show how to specify data filtering with
-                // a ContentFilteredTopic.
-                if (data.GetInt32Value("degrees") > 32)
-                {
-                    Console.WriteLine($"Temperature high: {data}");
-                }
-            }
-        }
 
         private void RunExample(
             int domainId = 0,
@@ -113,16 +85,12 @@ namespace KeysInstances
                 .CreateParticipant(domainId);
 
             // A Topic has a name and a datatype. Create a Topic named
-            // "ChocolateLotState" with type ChocolateLotState
-            // In this example we use a DynamicType defined in XML, which creates
-            // a DynamicData topic.
-            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic(
-                "ChocolateLotState",
-                types.ChocolateLotState);
+            // "ChocolateLotState" with type ChocolateLotState.
+            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
+                "ChocolateLotState");
             // Exercise #4.1: Add a Topic for Temperature to this application
-            Topic<Temperature> temperatureTopic = participant.CreateTopic(
-                "ChocolateTemperature",
-                types.Temperature);
+            Topic<Temperature> temperatureTopic = participant.CreateTopic<Temperature>(
+                CHOCOLATE_TEMPERATURE_TOPIC.Value);
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -143,19 +111,11 @@ namespace KeysInstances
                 subscriber.CreateDataReader(lotStateTopic);
 
             // Exercise #4.2: Add a DataReader for Temperature to this application
-            DataReader<Temperature> temperatureReader =
-                subscriber.CreateDataReader(temperatureTopic);
 
             // Obtain the DataReader's Status Condition
-            StatusCondition temperatureStatusCondition = temperatureReader.StatusCondition;
-            temperatureStatusCondition.EnabledStatuses = StatusMask.DataAvailable;
-
-            // Associate a handler with the status condition. This will run when the
-            // condition is triggered, in the context of the dispatch call (see below)
-            temperatureStatusCondition.Triggered += _ => MonitorTemperature(temperatureReader);
-
-            // Do the same with the lotStateReader's StatusCondition
             StatusCondition lotStateStatusCondition = lotStateReader.StatusCondition;
+
+            // Enable the 'data available' status.
             lotStateStatusCondition.EnabledStatuses = StatusMask.DataAvailable;
 
             int lotsProcessed = 0;
@@ -167,7 +127,6 @@ namespace KeysInstances
             waitset.AttachCondition(lotStateStatusCondition);
 
             // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
-            waitset.AttachCondition(temperatureStatusCondition);
 
             var startLotTask = Task.Run(() => PublishStartLot(lotStateWriter, lotsToProcess));
 
