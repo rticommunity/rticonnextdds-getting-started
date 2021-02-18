@@ -22,14 +22,17 @@ namespace StreamingData
     /// <summary>
     /// Example publisher application
     /// </summary>
-    public class ChocolateFactoryPublisher
+    public class ChocolateFactoryPublisher : IChocolateFactoryApplication
     {
         private bool shutdownRequested;
+        private string sensorId;
 
-        private void RunExample(
-            int domainId,
-            int sampleCount,
-            string sensorId)
+        public ChocolateFactoryPublisher(string sensorId)
+        {
+            this.sensorId = sensorId;
+        }
+
+        public void Run(int domainId, int sampleCount)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -73,38 +76,6 @@ namespace StreamingData
             }
         }
 
-        /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sensor-id mySensor
-        /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to publish</param>
-        /// <param name="sensorId">Identifies a sensor</param>
-        public static void Main(
-            int domainId = 0,
-            int sampleCount = int.MaxValue,
-            string sensorId = "default_id")
-        {
-            var example = new ChocolateFactoryPublisher();
-
-            // Setup signal handler
-            Console.CancelKeyPress += (_, eventArgs) =>
-            {
-                Console.WriteLine("Shuting down...");
-                eventArgs.Cancel = true; // let the application shutdown gracefully
-                example.shutdownRequested = true;
-            };
-
-            try
-            {
-                example.RunExample(domainId, sampleCount, sensorId);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("RunExample exception: " + ex.Message);
-                Console.WriteLine(ex.StackTrace);
-            }
-        }
+        public void Stop() => shutdownRequested = true;
     }
 }

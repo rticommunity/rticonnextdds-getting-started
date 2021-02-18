@@ -23,7 +23,7 @@ namespace StreamingData
     /// <summary>
     /// Example subscriber application
     /// </summary>
-    public class ChocolateFactorySubscriber
+    public class ChocolateFactorySubscriber : IChocolateFactoryApplication
     {
         private bool shutdownRequested;
 
@@ -44,7 +44,7 @@ namespace StreamingData
             return samplesRead;
         }
 
-        private void RunExample(int domainId, int sampleCount)
+        public void Run(int domainId, int sampleCount)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
@@ -89,34 +89,6 @@ namespace StreamingData
             }
         }
 
-        /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sample-count 5
-        /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to publish</param>
-        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
-        {
-            var example = new ChocolateFactorySubscriber();
-
-            // Setup signal handler
-            Console.CancelKeyPress += (_, eventArgs) =>
-            {
-                Console.WriteLine("Shuting down...");
-                eventArgs.Cancel = true; // let the application shutdown gracefully
-                example.shutdownRequested = true;
-            };
-
-            try
-            {
-                example.RunExample(domainId, sampleCount);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("RunExample exception: " + ex.Message);
-                Console.WriteLine(ex.StackTrace);
-            }
-        }
+        public void Stop() => shutdownRequested = true;
     }
 }
