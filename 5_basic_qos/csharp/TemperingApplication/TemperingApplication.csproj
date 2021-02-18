@@ -11,6 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Utils\Utils.csproj" />
+    <ProjectReference Include="..\ChocolateFactoryTypes\ChocolateFactoryTypes.csproj" />
   </ItemGroup>
 </Project>
