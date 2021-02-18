@@ -35,7 +35,7 @@ namespace KeysInstances
             DataWriter<ChocolateLotState> writer,
             uint lotsToProcess)
         {
-            var sample = writer.CreateData();
+            var sample = new ChocolateLotState();
             for (uint count = 0; !shutdownRequested && count < lotsToProcess; count++)
             {
                 sample.lot_id = count % 100;
@@ -89,8 +89,6 @@ namespace KeysInstances
             Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
                 "ChocolateLotState");
             // Exercise #4.1: Add a Topic for Temperature to this application
-            Topic<Temperature> temperatureTopic = participant.CreateTopic<Temperature>(
-                CHOCOLATE_TEMPERATURE_TOPIC.Value);
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml

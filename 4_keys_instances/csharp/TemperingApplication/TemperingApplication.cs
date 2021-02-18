@@ -66,7 +66,7 @@ namespace KeysInstances
             {
                 if (sample.next_station == StationKind.TEMPERING_CONTROLLER)
                 {
-                    Console.WriteLine($"Processing lot #" + sample.lot_id);
+                    Console.WriteLine("Processing lot #" + sample.lot_id);
 
                     // Send an update that the tempering station is processing lot
                     var updatedState = new ChocolateLotState(sample)
