@@ -17,7 +17,6 @@ using Rti.Dds.Core.Status;
 using Rti.Dds.Domain;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
 namespace StreamingData
 {
@@ -28,16 +27,18 @@ namespace StreamingData
     {
         private bool shutdownRequested;
 
-        private static int ProcessData(DataReader<DynamicData> reader)
+        private static int ProcessData(DataReader<Temperature> reader)
         {
             // Take all samples. Samples are loaned to application, loan is
             // returned when samples.Dispose() is called.
             int samplesRead = 0;
-            using var samples = reader.Take();
-            foreach (var sample in samples.ValidData)
+            using (var samples = reader.Take())
             {
-                Console.WriteLine($"Received:\n{sample}");
-                samplesRead++;
+                foreach (var sample in samples.ValidData())
+                {
+                    Console.WriteLine(sample);
+                    samplesRead++;
+                }
             }
 
             return samplesRead;
@@ -52,13 +53,8 @@ namespace StreamingData
                 .CreateParticipant(domainId);
 
             // A Topic has a name and a datatype. Create a Topic named
-            // "ChocolateTemperature" with type Temperature
-            // In this example we use a DynamicType defined in XML, which creates
-            // a DynamicData topic.
-            var provider = new QosProvider("../chocolate_factory.xml");
-            Topic<DynamicData> topic = participant.CreateTopic(
-                "ChocolateTemperature",
-                provider.GetType("Temperature"));
+            // "ChocolateTemperature" with type Temperature.
+            Topic<Temperature> topic = participant.CreateTopic<Temperature>("ChocolateTemperature");
 
             // A Subscriber allows an application to create one or more DataReaders
             // Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -67,7 +63,7 @@ namespace StreamingData
             // This DataReader reads data of type Temperature on Topic
             // "ChocolateTemperature". DataReader QoS is configured in
             // USER_QOS_PROFILES.xml
-            DataReader<DynamicData> reader = subscriber.CreateDataReader(topic);
+            DataReader<Temperature> reader = subscriber.CreateDataReader(topic);
 
             // Obtain the DataReader's Status Condition
             StatusCondition statusCondition = reader.StatusCondition;
@@ -92,7 +88,6 @@ namespace StreamingData
                 waitset.Dispatch(Duration.FromSeconds(4));
             }
         }
-
 
         /// <summary>
         /// Main function, receiving structured command-line arguments

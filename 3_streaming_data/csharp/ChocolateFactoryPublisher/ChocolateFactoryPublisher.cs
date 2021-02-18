@@ -16,7 +16,6 @@ using Rti.Dds.Core;
 using Rti.Dds.Domain;
 using Rti.Dds.Publication;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
 namespace StreamingData
 {
@@ -40,17 +39,9 @@ namespace StreamingData
 
             // A Topic has a name and a datatype. Create a Topic named
             // "ChocolateTemperature" with type Temperature
-            // In this example we use a DynamicType defined in XML, which creates
-            // a DynamicData topic.
-            var provider = new QosProvider("../chocolate_factory.xml");
-            Topic<DynamicData> topic = participant.CreateTopic(
-                "ChocolateTemperature",
-                provider.GetType("Temperature"));
+            Topic<Temperature> topic = participant.CreateTopic<Temperature>("ChocolateTemperature");
 
             // Exercise #2.1: Add new Topic
-            Topic<DynamicData> lotStateTopic = participant.CreateTopic(
-                "ChocolateLotState",
-                provider.GetType("ChocolateLotState"));
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -58,36 +49,26 @@ namespace StreamingData
 
             // This DataWriter writes data on Topic "ChocolateTemperature"
             // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-            DataWriter<DynamicData> writer = publisher.CreateDataWriter(topic);
+            DataWriter<Temperature> writer = publisher.CreateDataWriter(topic);
 
             // Create a DynamicData sample for writing
-            DynamicData sample = writer.CreateData();
+            var sample = new Temperature();
 
             // Exercise #2.2: Add new DataWriter and data sample
-            DataWriter<DynamicData> lotStateWriter =
-                publisher.CreateDataWriter(lotStateTopic);
-            DynamicData lotStateSample = lotStateWriter.CreateData();
 
-            Random rand = new Random();
+            var rand = new Random();
             for (int count = 0; count < sampleCount && !shutdownRequested; count++)
             {
                 // Modify the data to be written here
-                sample.SetValue("sensor_id", sensorId);
-                sample.SetValue("degrees", rand.Next(30, 33));
+                sample.sensor_id = sensorId;
+                sample.degrees = rand.Next(30, 33);  // Random number between 30 and 32
 
                 Console.WriteLine($"Writing ChocolateTemperature, count {count}");
                 writer.Write(sample);
 
                 // Exercise #2.3 Write data with new ChocolateLotState DataWriter
-                lotStateSample.SetValue("lot_id", count % 100);
-                // SetAnyValue performs type conversions. In this case it can
-                // translate a string to the corresponding enumerator.
-                lotStateSample.SetAnyValue("lot_status", "WAITING");
-                lotStateWriter.Write(lotStateSample);
 
                 // Exercise #1.1: Change this to sleep 100 ms in between writing temperatures
-
-
                 Thread.Sleep(4000);
             }
         }
