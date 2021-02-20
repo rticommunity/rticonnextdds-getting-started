@@ -73,7 +73,7 @@ namespace ContentFilter
                 // the next_station. This will now be filtered automatically.
                 if (sample.next_station == StationKind.TEMPERING_CONTROLLER)
                 {
-                    Console.WriteLine($"Processing lot #{sample.lot_id}");
+                    Console.WriteLine("Processing lot " + sample.lot_id);
 
                     // Send an update that the tempering station is processing lot
                     var updatedState = new ChocolateLotState(sample)
@@ -92,6 +92,7 @@ namespace ContentFilter
                     // using a dispose
                     lotStateWriter.DisposeInstance(
                         lotStateWriter.LookupInstance(updatedState));
+                    Console.WriteLine("Lot completed");
                 }
             }
         }
@@ -101,15 +102,13 @@ namespace ContentFilter
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
             // Uses TemperingApplication QoS profile to set participant name.
-            var qosProvider = new QosProvider("../qos_profiles.xml");
+            var qosProvider = new QosProvider("./qos_profiles.xml");
             var participantQos = qosProvider.GetDomainParticipantQos(
                 "ChocolateFactoryLibrary::TemperingApplication");
             DomainParticipant participant = DomainParticipantFactory.Instance
                 .CreateParticipant(domainId, participantQos);
 
-            // A Topic has a name and a datatype. Create Topics using the types
-            // defined in chocolate_factory.xml
-            var typeProvider = new QosProvider("../chocolate_factory.xml");
+            // Create the topics
             Topic<Temperature> temperatureTopic =
                 participant.CreateTopic<Temperature>("ChocolateTemperature");
             Topic<ChocolateLotState> lotStateTopic =
@@ -117,13 +116,6 @@ namespace ContentFilter
 
             // Exercise #1.1: Create a Content-Filtered Topic that filters out
             // chocolate lot state unless the next_station = TEMPERING_CONTROLLER
-            ContentFilteredTopic<ChocolateLotState> filteredLotStateTopic =
-                participant.CreateContentFilteredTopic(
-                    name: "FilteredLot",
-                    relatedTopic: lotStateTopic,
-                    filter: new Filter(
-                        expression: "next_station = %0",
-                        parameters: new string[] { "'TEMPERING_CONTROLLER'" }));
 
             // A Publisher allows an application to create one or more DataWriters
             // Create Publisher with default QoS.
@@ -222,85 +214,5 @@ namespace ContentFilter
                 Console.WriteLine(ex.StackTrace);
             }
         }
-    }
-
-    // TODO: codegen
-    public enum StationKind
-    {
-        INVALID_CONTROLLER,
-        COCOA_BUTTER_CONTROLLER,
-        SUGAR_CONTROLLER,
-        MILK_CONTROLLER,
-        VANILLA_CONTROLLER,
-        TEMPERING_CONTROLLER
-    }
-
-    public enum LotStatusKind
-    {
-        WAITING,
-        PROCESSING,
-        COMPLETED
-    }
-
-    public class Temperature : IEquatable<Temperature>
-    {
-        public Temperature()
-        {
-        }
-
-        public Temperature(int degreesParam)
-        {
-            degrees = degreesParam;
-        }
-
-        public Temperature(Temperature other_)
-        {
-            degrees = other_.degrees;
-        }
-
-        public string sensor_id { get; set; }
-        public int degrees { get; set; }
-
-        public bool Equals(Temperature other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-            return degrees.Equals(other.degrees);
-        }
-    }
-
-    public class ChocolateLotState
-    {
-        public ChocolateLotState()
-        {
-            station = new StationKind();
-            next_station = new StationKind();
-            lot_status = new LotStatusKind();
-        }
-
-        public ChocolateLotState(uint lot_idParam, StationKind stationParam, StationKind next_stationParam, LotStatusKind lot_statusParam)
-        {
-            lot_id = lot_idParam;
-            station = stationParam;
-            next_station = next_stationParam;
-            lot_status = lot_statusParam;
-        }
-
-        public ChocolateLotState(ChocolateLotState other_)
-        {
-            lot_id = other_.lot_id;
-        }
-
-        public uint lot_id { get; set; }
-        public StationKind station { get; set; }
-        public StationKind next_station { get; set; }
-        public LotStatusKind lot_status { get; set; }
     }
 }

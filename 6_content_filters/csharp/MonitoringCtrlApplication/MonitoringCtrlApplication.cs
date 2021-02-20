@@ -21,7 +21,6 @@ using Rti.Dds.Domain;
 using Rti.Dds.Publication;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
 namespace ContentFilter
 {
@@ -43,7 +42,8 @@ namespace ContentFilter
                 sample.lot_status = LotStatusKind.WAITING;
                 sample.next_station = StationKind.COCOA_BUTTER_CONTROLLER;
 
-                Console.WriteLine($"\nStarting lot:\n{sample}");
+                Console.WriteLine("Starting lot:");
+                Console.WriteLine($"[lot_id: {sample.lot_id} next_station: {sample.next_station}]");
                 writer.Write(sample);
 
                 Thread.Sleep(30_000);
@@ -56,7 +56,7 @@ namespace ContentFilter
             using var samples = reader.Take();
             foreach (var sample in samples)
             {
-                Console.WriteLine("Received Lot Update: ");
+                Console.WriteLine("Received lot update: ");
                 if (sample.Info.ValidData)
                 {
                     Console.WriteLine(sample.Data);
@@ -68,8 +68,8 @@ namespace ContentFilter
                     // the disposed state.
                     if (sample.Info.State.Instance == InstanceState.NotAliveDisposed)
                     {
-                        // Fills in only the key field values associated with the
-                        // instance
+                        // Create a sample to fill in the key values associated
+                        // with the instance
                         var keyHolder = new ChocolateLotState();
                         reader.GetKeyValue(keyHolder, sample.Info.InstanceHandle);
                         Console.WriteLine($"[lot_id: {keyHolder.lot_id} is completed]");
@@ -88,7 +88,7 @@ namespace ContentFilter
             {
                 // Receive updates from tempering station about chocolate temperature.
                 // Only an error if below 30 or over 32 degrees Fahrenheit.
-                Console.WriteLine($"Temperature high: {data}");
+                Console.WriteLine("Temperature high: " + data);
             }
         }
 
@@ -119,7 +119,7 @@ namespace ContentFilter
                     name: "FilteredTemperature",
                     relatedTopic: temperatureTopic,
                     filter: new Filter(
-                        expression: "degrees > % 0 or degrees < % 1",
+                        expression: "degrees > %0 or degrees < %1",
                         parameters: new string[] { "32", "30" }));
 
             // A Publisher allows an application to create one or more DataWriters
@@ -214,85 +214,5 @@ namespace ContentFilter
                 Console.WriteLine(ex.StackTrace);
             }
         }
-    }
-
-    // TODO: codegen
-    public enum StationKind
-    {
-        INVALID_CONTROLLER,
-        COCOA_BUTTER_CONTROLLER,
-        SUGAR_CONTROLLER,
-        MILK_CONTROLLER,
-        VANILLA_CONTROLLER,
-        TEMPERING_CONTROLLER
-    }
-
-    public enum LotStatusKind
-    {
-        WAITING,
-        PROCESSING,
-        COMPLETED
-    }
-
-    public class Temperature : IEquatable<Temperature>
-    {
-        public Temperature()
-        {
-        }
-
-        public Temperature(int degreesParam)
-        {
-            degrees = degreesParam;
-        }
-
-        public Temperature(Temperature other_)
-        {
-            degrees = other_.degrees;
-        }
-
-        public string sensor_id { get; set; }
-        public int degrees { get; set; }
-
-        public bool Equals(Temperature other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-            return degrees.Equals(other.degrees);
-        }
-    }
-
-    public class ChocolateLotState
-    {
-        public ChocolateLotState()
-        {
-            station = new StationKind();
-            next_station = new StationKind();
-            lot_status = new LotStatusKind();
-        }
-
-        public ChocolateLotState(uint lot_idParam, StationKind stationParam, StationKind next_stationParam, LotStatusKind lot_statusParam)
-        {
-            lot_id = lot_idParam;
-            station = stationParam;
-            next_station = next_stationParam;
-            lot_status = lot_statusParam;
-        }
-
-        public ChocolateLotState(ChocolateLotState other_)
-        {
-            lot_id = other_.lot_id;
-        }
-
-        public uint lot_id { get; set; }
-        public StationKind station { get; set; }
-        public StationKind next_station { get; set; }
-        public LotStatusKind lot_status { get; set; }
     }
 }
