@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<!-- 
+<!--
     (c) Copyright, Real-Time Innovations, 2020.  All rights reserved.
     RTI grants Licensee a license to use, modify, compile, and create derivative
     works of the software solely for use with RTI Connext DDS. Licensee may
@@ -29,7 +29,7 @@
     -->
     <qos_library name="hello_world_Library">
 
-        <!-- 
+        <!--
             QoS profile used to configure reliable communication between the
             DataWriter and DataReader created in the example code.
 
@@ -41,7 +41,7 @@
             These QoS profiles will be used as the default, as long as this
             file is in the working directory when running the example.
         -->
-        <qos_profile name="hello_world_Profile" 
+        <qos_profile name="hello_world_Profile"
                      base_name="BuiltinQosLib::Generic.StrictReliable"
                      is_default_qos="true">
 
@@ -53,7 +53,7 @@
                 </publication_name>
             </datawriter_qos>
 
-            <!-- QoS specified to override the QoS in the base profile. 
+            <!-- QoS specified to override the QoS in the base profile.
                  Configures the DataReader in the example code. -->
             <datareader_qos>
                 <subscription_name>
@@ -61,7 +61,7 @@
                 </subscription_name>
             </datareader_qos>
 
-            <!-- QoS specified to override the QoS in the base profile. 
+            <!-- QoS specified to override the QoS in the base profile.
                  Configures the DomainParticipant in the example code. -->
             <participant_qos>
                 <!--

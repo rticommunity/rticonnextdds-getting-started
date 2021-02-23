@@ -31,6 +31,7 @@ case $os in
             ${terminal} ${param} dotnet run -p IngredientApplication -- --station-kind VANILLA_CONTROLLER $*
             ${terminal} ${param} dotnet run -p TemperingApplication $*
             ${terminal} ${param} dotnet run -p MonitoringCtrlApplication $*
+        fi
     ;;
 
     Darwin*)
