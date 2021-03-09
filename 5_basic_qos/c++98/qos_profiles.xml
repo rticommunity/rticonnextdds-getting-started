@@ -32,21 +32,21 @@
         <!-- QoS profile to set the participant name for debugging -->
         <qos_profile name="TemperingApplication"
                      base_name="BuiltinQosLib::Generic.Common">
-            <participant_qos>
+            <domain_participant_qos>
                 <participant_name>
                     <name>TemperingAppParticipant</name>
                 </participant_name>
-            </participant_qos>
+            </domain_participant_qos>
         </qos_profile>
 
         <!-- QoS profile to set the participant name for debugging -->
         <qos_profile name="MonitoringControlApplication"
                      base_name="BuiltinQosLib::Generic.Common">
-            <participant_qos>
+            <domain_participant_qos>
                 <participant_name>
                     <name>MonitoringControlParticipant</name>
                 </participant_name>
-            </participant_qos>
+            </domain_participant_qos>
         </qos_profile>
 
         <!-- 
