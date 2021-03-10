@@ -352,11 +352,15 @@ function(connextdds_call_codegen)
     )
 
     set(api "c")
+    set(c_standard C_STANDARD 90)
+    set(cxx_standard CXX_STANDARD 98)
     if("${_CONNEXT_LANG}" STREQUAL "C++")
         set(api "cpp")
-    elseif("${_CONNEXT_LANG}" STREQUAL "C++03" OR
-        "${_CONNEXT_LANG}" STREQUAL "C++11")
+    elseif("${_CONNEXT_LANG}" STREQUAL "C++03")
         set(api "cpp2")
+    elseif("${_CONNEXT_LANG}" STREQUAL "C++11")
+        set(api "cpp2")
+        set(cxx_standard CXX_STANDARD 11)
     endif()
 
     target_compile_definitions(
@@ -368,6 +372,13 @@ function(connextdds_call_codegen)
         ${obj_library}
         PRIVATE
         $<TARGET_PROPERTY:RTIConnextDDS::${api}_api,INTERFACE_INCLUDE_DIRECTORIES>)
+
+    set_target_properties(
+        ${obj_library}
+        PROPERTIES
+            ${c_standard}
+            ${cxx_standard}
+    )
 
     add_dependencies(${obj_library}
         ${_CONNEXT_PREFIX}_${lang_var}_sources
@@ -510,11 +521,13 @@ function(connextdds_add_application)
      )
 
     set(api "c")
-
+    set(c_standard C_STANDARD 90)
+    set(cxx_standard CXX_STANDARD 98)
     if("${_CONNEXT_LANG}" STREQUAL "C++")
         set(api "cpp")
-    elseif("${_CONNEXT_LANG}" STREQUAL "C++03" OR
-        "${_CONNEXT_LANG}" STREQUAL "C++11")
+    elseif("${_CONNEXT_LANG}" STREQUAL "C++03")
+        set(api "cpp2")
+    elseif ("${_CONNEXT_LANG}" STREQUAL "C++11")
         set(api "cpp2")
         set(cxx_standard CXX_STANDARD 11)
     endif()
@@ -551,6 +564,7 @@ function(connextdds_add_application)
     set_target_properties(${target_name}
         PROPERTIES
             OUTPUT_NAME "${_CONNEXT_OUTPUT_NAME}"
+            ${c_standard}
             ${cxx_standard}
     )
 
