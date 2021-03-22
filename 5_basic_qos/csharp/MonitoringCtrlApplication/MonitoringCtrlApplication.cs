@@ -160,6 +160,7 @@ namespace KeysInstances
             // Add the new DataReader's StatusCondition to the Waitset
             waitset.AttachCondition(temperatureStatusCondition);
 
+            // Start publishing in a separate thread
             var startLotTask = Task.Run(() => PublishStartLot(lotStateWriter, lotsToProcess));
 
             while(!shutdownRequested && lotsProcessed < lotsToProcess)
