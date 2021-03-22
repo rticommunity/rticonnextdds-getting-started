@@ -80,9 +80,11 @@ namespace KeysInstances
                     // "Processing" the lot.
                     Thread.Sleep(5000);
 
-                    // Exercise #3.1: Since this is the last step in processing,
+                    // Since this is the last step in processing,
                     // notify the monitoring application that the lot is complete
                     // using a dispose
+                    var instanceHandle = lotStateWriter.LookupInstance(updatedState);
+                    lotStateWriter.DisposeInstance(instanceHandle);
                 }
             }
         }
@@ -91,36 +93,50 @@ namespace KeysInstances
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
-            // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
+            // Uses TemperingApplication QoS profile to set participant name.
+            var qosProvider = new QosProvider("./qos_profiles.xml");
+            var participantQos = qosProvider.GetDomainParticipantQos(
+                "ChocolateFactoryLibrary::TemperingApplication");
             DomainParticipant participant = DomainParticipantFactory.Instance
-                .CreateParticipant(domainId);
+                .CreateParticipant(domainId, participantQos);
 
             // A Topic has a name and a datatype.
             Topic<Temperature> temperatureTopic = participant.CreateTopic<Temperature>(
-                "ChocolateTemperature");
+                CHOCOLATE_TEMPERATURE_TOPIC.Value);
             Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
-                "ChocolateLotState");
+                CHOCOLATE_LOT_STATE_TOPIC.Value);
 
             // A Publisher allows an application to create one or more DataWriters
-            // Publisher QoS is configured in USER_QOS_PROFILES.xml
+            // Create Publisher with default QoS.
             Publisher publisher = participant.CreatePublisher();
 
-            // Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
-            // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-            DataWriter<Temperature> temperatureWriter =
-                publisher.CreateDataWriter(temperatureTopic);
-            DataWriter<ChocolateLotState> lotStateWriter =
-                publisher.CreateDataWriter(lotStateTopic);
+            // Create DataWriter of Topic "ChocolateTemperature"
+            // using ChocolateTemperatureProfile QoS profile for Streaming Data
+            DataWriter<Temperature> temperatureWriter = publisher.CreateDataWriter(
+                temperatureTopic,
+                qos: qosProvider.GetDataWriterQos("ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
+
+            // Create DataWriter of Topic "ChocolateLotState"
+            // using ChocolateLotStateProfile QoS profile for State Data
+            DataWriter<ChocolateLotState> lotStateWriter = publisher.CreateDataWriter(
+                lotStateTopic,
+                qos: qosProvider.GetDataWriterQos("ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
             // A Subscriber allows an application to create one or more DataReaders
-            // Subscriber QoS is configured in USER_QOS_PROFILES.xml
             Subscriber subscriber = participant.CreateSubscriber();
 
             // This DataReader reads data of type Temperature on Topic
-            // "ChocolateTemperature". DataReader QoS is configured in
-            // USER_QOS_PROFILES.xml
-            DataReader<ChocolateLotState> lotStateReader =
-                subscriber.CreateDataReader(lotStateTopic);
+            // "ChocolateTemperature" using ChocolateLotStateProfile QoS
+            // profile for State Data.
+            //
+            // We will handle the "requested incompatible qos" event. By doing
+            // it as a preEnableAction, we avoid a race condition in which
+            // the event could trigger right after the reader creation but
+            // right before adding the event handler.
+            DataReader<ChocolateLotState> lotStateReader = subscriber.CreateDataReader(
+                lotStateTopic,
+                qos: qosProvider.GetDataReaderQos("ChocolateFactoryLibrary::ChocolateLotStateProfile"),
+                preEnableAction: reader => reader.RequestedIncompatibleQos += OnRequestedIncompatibleQos);
 
             // Obtain the DataReader's Status Condition
             StatusCondition statusCondition = lotStateReader.StatusCondition;
@@ -151,6 +167,14 @@ namespace KeysInstances
             }
 
             temperatureTask.Wait();
+        }
+
+        private static void OnRequestedIncompatibleQos(
+            AnyDataReader _,
+            RequestedIncompatibleQosStatus status)
+        {
+            // Exercise #3.1 add a message to print when this DataReader discovers an
+            // incompatible DataWriter
         }
 
         /// <summary>

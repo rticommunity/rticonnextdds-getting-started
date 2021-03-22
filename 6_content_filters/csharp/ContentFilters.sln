@@ -3,9 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactoryPublisher", "ChocolateFactoryPublisher\ChocolateFactoryPublisher.csproj", "{8CA3A8C9-09BA-4075-9CCE-538780D51C03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonitoringCtrlApplication", "MonitoringCtrlApplication\MonitoringCtrlApplication.csproj", "{8CA3A8C9-09BA-4075-9CCE-538780D51C03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactorySubscriber", "ChocolateFactorySubscriber\ChocolateFactorySubscriber.csproj", "{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TemperingApplication", "TemperingApplication\TemperingApplication.csproj", "{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IngredientApplication", "IngredientApplication\IngredientApplication.csproj", "{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChocolateFactoryTypes", "ChocolateFactoryTypes\ChocolateFactoryTypes.csproj", "{FA51BB52-A302-496E-9544-027C5B06FD7F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -56,5 +60,29 @@ Global
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x64.Build.0 = Release|Any CPU
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x86.ActiveCfg = Release|Any CPU
 		{7FC746E1-8F8A-46C1-B7F3-AEFD816F0805}.Release|x86.Build.0 = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|x64.Build.0 = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Debug|x86.Build.0 = Debug|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|x64.ActiveCfg = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|x64.Build.0 = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE9BBCBE-096A-4D0E-B2A8-609EF25CC85C}.Release|x86.Build.0 = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|x64.Build.0 = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Debug|x86.Build.0 = Debug|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|x64.ActiveCfg = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|x64.Build.0 = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|x86.ActiveCfg = Release|Any CPU
+		{FA51BB52-A302-496E-9544-027C5B06FD7F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

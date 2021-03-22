@@ -17,56 +17,44 @@ using Rti.Dds.Core.Status;
 using Rti.Dds.Domain;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
-using Rti.Types.Dynamic;
 
-namespace HelloWorld
+namespace StreamingData
 {
     /// <summary>
     /// Example subscriber application
     /// </summary>
-    public static class HelloWorldSubscriber
+    public class ChocolateFactorySubscriber : IChocolateFactoryApplication
     {
-        private static int ProcessData(DataReader<DynamicData> reader)
+        private bool shutdownRequested;
+
+        private static int ProcessData(DataReader<Temperature> reader)
         {
             // Take all samples. Samples are loaned to application, loan is
-            // returned when samples is Disposed.
+            // returned when samples.Dispose() is called.
             int samplesRead = 0;
-            using var samples = reader.Take();
-            foreach (var sample in samples.ValidData)
+            using (var samples = reader.Take())
             {
-                Console.WriteLine($"Received: {sample}");
-                samplesRead++;
+                foreach (var sample in samples.ValidData())
+                {
+                    Console.WriteLine(sample);
+                    samplesRead++;
+                }
             }
 
             return samplesRead;
         }
 
-        /// <summary>
-        /// Main function, receiving structured command-line arguments
-        /// via the System.Console.DragonFruit package.
-        /// For example: dotnet run -- --domain-id 54 --sample-count 5
-        /// </summary>
-        /// <param name="domainId">The domain ID to create the DomainParticipant</param>
-        /// <param name="sampleCount">The number of data samples to receive before exiting</param>
-        public static void Main(int domainId = 0, int sampleCount = int.MaxValue)
+        public void Run(int domainId, int sampleCount)
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
             // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
-            //
-            // A participant needs to be Disposed to release middleware resources.
-            // The 'using' keyword indicates that it will be Disposed when this
-            // scope ends.
-            using DomainParticipant participant = DomainParticipantFactory.Instance
+            DomainParticipant participant = DomainParticipantFactory.Instance
                 .CreateParticipant(domainId);
 
-            // A Topic has a name and a datatype. Create dynamically-typed
-            // Topic named "HelloWorld Topic" with the type definition of
-            // "HelloWorld" in hello_world.xml. To get the type we use a QosProvider
-            var provider = new QosProvider("../hello_world.xml");
-            Topic<DynamicData> topic = participant.CreateTopic(
-                "Example HelloWorld",
-                provider.GetType("HelloWorld"));
+            // A Topic has a name and a datatype. Create a Topic named
+            // "ChocolateTemperature" with type Temperature.
+            Topic<Temperature> topic = participant.CreateTopic<Temperature>("ChocolateTemperature");
 
             // A Subscriber allows an application to create one or more DataReaders
             // Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -75,7 +63,7 @@ namespace HelloWorld
             // This DataReader reads data of type Temperature on Topic
             // "ChocolateTemperature". DataReader QoS is configured in
             // USER_QOS_PROFILES.xml
-            DataReader<DynamicData> reader = subscriber.CreateDataReader(topic);
+            DataReader<Temperature> reader = subscriber.CreateDataReader(topic);
 
             // Obtain the DataReader's Status Condition
             StatusCondition statusCondition = reader.StatusCondition;
@@ -92,13 +80,15 @@ namespace HelloWorld
             // Create a WaitSet and attach the StatusCondition
             var waitset = new WaitSet();
             waitset.AttachCondition(statusCondition);
-            while (samplesRead < sampleCount)
+            while (samplesRead < sampleCount && !shutdownRequested)
             {
                 // Dispatch will call the handlers associated to the WaitSet
                 // conditions when they activate
-                Console.WriteLine("HelloWorld subscriber sleeping for 4 sec...");
+                Console.WriteLine("ChocolateTemperature subscriber sleeping for 4 sec...");
                 waitset.Dispatch(Duration.FromSeconds(4));
             }
         }
+
+        public void Stop() => shutdownRequested = true;
     }
 }

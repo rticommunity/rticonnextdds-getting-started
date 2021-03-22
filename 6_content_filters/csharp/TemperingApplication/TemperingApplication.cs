@@ -21,10 +21,10 @@ using Rti.Dds.Publication;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
 
-namespace KeysInstances
+namespace ContentFilter
 {
     /// <summary>
-    /// TemperingApplication
+    /// Example subscriber application
     /// </summary>
     public class TemperingApplication
     {
@@ -37,16 +37,24 @@ namespace KeysInstances
         {
             // Create temperature sample for writing
             var temperature = writer.CreateData();
+            int counter = 0;
             while (!shutdownRequested)
             {
+                counter++;
+
                 // Modify the data to be written here
                 temperature.sensor_id = sensorId;
 
-                // Currently we don't send above 32 degrees, to make the output
-                // in the MonitoringCtrlApplication more readable. Increase the
-                // range here to see the temperature printed in the
-                // MonitoringCtrlApplication
-                temperature.degrees = rand.Next(30, 33);
+                // Occasionally make the temperature high
+                if (counter % 400 == 0)
+                {
+                    Console.WriteLine("Temperature too high");
+                    temperature.degrees = 33;
+                }
+                else
+                {
+                    temperature.degrees = rand.Next(30, 33);  // Random value between 30 and 32
+                }
 
                 writer.Write(temperature);
 
@@ -54,19 +62,18 @@ namespace KeysInstances
             }
         }
 
-        private void ProcessLot(
+        private static void ProcessLot(
             DataReader<ChocolateLotState> lotStateReader,
             DataWriter<ChocolateLotState> lotStateWriter)
         {
-            // Take all samples. Samples are loaned to application, loan is
-            // returned when LoanedSamples is Disposed. ValidData iterates only over
-            // samples such that sample.Info.ValidData is true.
             using var samples = lotStateReader.Take();
             foreach (var sample in samples.ValidData())
             {
+                // Exercise #1.3: Remove the check that the Tempering Application is
+                // the next_station. This will now be filtered automatically.
                 if (sample.next_station == StationKind.TEMPERING_CONTROLLER)
                 {
-                    Console.WriteLine("Processing lot #" + sample.lot_id);
+                    Console.WriteLine("Processing lot " + sample.lot_id);
 
                     // Send an update that the tempering station is processing lot
                     var updatedState = new ChocolateLotState(sample)
@@ -80,9 +87,12 @@ namespace KeysInstances
                     // "Processing" the lot.
                     Thread.Sleep(5000);
 
-                    // Exercise #3.1: Since this is the last step in processing,
+                    // Since this is the last step in processing,
                     // notify the monitoring application that the lot is complete
                     // using a dispose
+                    lotStateWriter.DisposeInstance(
+                        lotStateWriter.LookupInstance(updatedState));
+                    Console.WriteLine("Lot completed");
                 }
             }
         }
@@ -91,36 +101,49 @@ namespace KeysInstances
         {
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
-            // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
+            // Uses TemperingApplication QoS profile to set participant name.
+            var qosProvider = new QosProvider("./qos_profiles.xml");
+            var participantQos = qosProvider.GetDomainParticipantQos(
+                "ChocolateFactoryLibrary::TemperingApplication");
             DomainParticipant participant = DomainParticipantFactory.Instance
-                .CreateParticipant(domainId);
+                .CreateParticipant(domainId, participantQos);
 
-            // A Topic has a name and a datatype.
-            Topic<Temperature> temperatureTopic = participant.CreateTopic<Temperature>(
-                "ChocolateTemperature");
-            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
-                "ChocolateLotState");
+            // Create the topics
+            Topic<Temperature> temperatureTopic =
+                participant.CreateTopic<Temperature>("ChocolateTemperature");
+            Topic<ChocolateLotState> lotStateTopic =
+                participant.CreateTopic<ChocolateLotState>("ChocolateLotState");
+
+            // Exercise #1.1: Create a Content-Filtered Topic that filters out
+            // chocolate lot state unless the next_station = TEMPERING_CONTROLLER
 
             // A Publisher allows an application to create one or more DataWriters
-            // Publisher QoS is configured in USER_QOS_PROFILES.xml
+            // Create Publisher with default QoS.
             Publisher publisher = participant.CreatePublisher();
 
-            // Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
-            // DataWriter QoS is configured in USER_QOS_PROFILES.xml
-            DataWriter<Temperature> temperatureWriter =
-                publisher.CreateDataWriter(temperatureTopic);
-            DataWriter<ChocolateLotState> lotStateWriter =
-                publisher.CreateDataWriter(lotStateTopic);
+            // Create DataWriter of Topic "ChocolateTemperature"
+            // using ChocolateTemperatureProfile QoS profile for Streaming Data
+            DataWriter<Temperature> temperatureWriter = publisher.CreateDataWriter(
+                temperatureTopic,
+                qos: qosProvider.GetDataWriterQos("ChocolateFactoryLibrary::ChocolateTemperatureProfile"));
+
+            // Create DataWriter of Topic "ChocolateLotState"
+            // using ChocolateLotStateProfile QoS profile for State Data
+            DataWriter<ChocolateLotState> lotStateWriter = publisher.CreateDataWriter(
+                lotStateTopic,
+                qos: qosProvider.GetDataWriterQos("ChocolateFactoryLibrary::ChocolateLotStateProfile"));
 
             // A Subscriber allows an application to create one or more DataReaders
-            // Subscriber QoS is configured in USER_QOS_PROFILES.xml
             Subscriber subscriber = participant.CreateSubscriber();
 
-            // This DataReader reads data of type Temperature on Topic
-            // "ChocolateTemperature". DataReader QoS is configured in
-            // USER_QOS_PROFILES.xml
-            DataReader<ChocolateLotState> lotStateReader =
-                subscriber.CreateDataReader(lotStateTopic);
+            // Create DataReader of Topic "ChocolateLotState".
+            // using ChocolateLotStateProfile QoS profile for State Data
+            // Exercise #1.2: Change the DataReader's Topic to use a
+            // Content-Filtered Topic
+            DataReader<ChocolateLotState> lotStateReader = subscriber.CreateDataReader(
+                lotStateTopic,
+                qos: qosProvider.GetDataReaderQos("ChocolateFactoryLibrary::ChocolateLotStateProfile"),
+                preEnableAction: reader => reader.RequestedIncompatibleQos += OnRequestedIncompatibleQos);
 
             // Obtain the DataReader's Status Condition
             StatusCondition statusCondition = lotStateReader.StatusCondition;
@@ -147,10 +170,19 @@ namespace KeysInstances
             {
                 // Wait for ChocolateLotState
                 Console.WriteLine("Waiting for lot");
-                waitset.Dispatch(Duration.FromSeconds(4));
+                waitset.Dispatch(Duration.FromSeconds(10));
             }
 
             temperatureTask.Wait();
+        }
+
+        private static void OnRequestedIncompatibleQos(
+            AnyDataReader _,
+            RequestedIncompatibleQosStatus status)
+        {
+            // Print when this DataReader discovers an incompatible DataWriter
+            Console.WriteLine(
+                $"Requested incompatible policy: {status.LastPolicy.Name}");
         }
 
         /// <summary>
