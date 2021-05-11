@@ -18,4 +18,7 @@ An overview of the individual examples:
       DataReader.
     * 5_basic_qos: Introduction to Quality of Service (QoS) and debugging
       incompatible QoS policies.
+    * 6_content_filters: Introduction to using ContentFilteredTopics to filter
+      data.
+
 * Request/Reply Pattern
