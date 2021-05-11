@@ -18,7 +18,6 @@ connextdds_add_example(
     LANG "C++"
     REQUIRE_SCRIPT
     CODEGEN_ARGS
-        LEGACY_PLUGIN
     APPLICATION_NAMES
         "tempering_application"
         "monitoring_ctrl_application"

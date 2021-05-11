@@ -22,10 +22,10 @@ using Rti.Dds.Publication;
 using Rti.Dds.Subscription;
 using Rti.Dds.Topics;
 
-namespace KeysInstances
+namespace ContentFilter
 {
     /// <summary>
-    /// MonitoringCtrlApplication application
+    /// Example publisher application
     /// </summary>
     public class MonitoringCtrlApplication
     {
@@ -35,22 +35,22 @@ namespace KeysInstances
             DataWriter<ChocolateLotState> writer,
             uint lotsToProcess)
         {
-            var sample = new ChocolateLotState();
+            var sample = writer.CreateData();
             for (uint count = 0; !shutdownRequested && count < lotsToProcess; count++)
             {
                 sample.lot_id = count % 100;
                 sample.lot_status = LotStatusKind.WAITING;
-                sample.next_station = StationKind.TEMPERING_CONTROLLER;
+                sample.next_station = StationKind.COCOA_BUTTER_CONTROLLER;
 
                 Console.WriteLine("Starting lot:");
                 Console.WriteLine($"[lot_id: {sample.lot_id} next_station: {sample.next_station}]");
                 writer.Write(sample);
 
-                Thread.Sleep(8000);
+                Thread.Sleep(30_000);
             }
         }
 
-        private int MonitorLotState(DataReader<ChocolateLotState> reader)
+        private static int MonitorLotState(DataReader<ChocolateLotState> reader)
         {
             int samplesRead = 0;
             using var samples = reader.Take();
@@ -64,40 +64,73 @@ namespace KeysInstances
                 }
                 else
                 {
-                    // Exercise #3.2: Detect that a lot is complete by checking for
+                    // Detect that a lot is complete by checking for
                     // the disposed state.
+                    if (sample.Info.State.Instance == InstanceState.NotAliveDisposed)
+                    {
+                        // Create a sample to fill in the key values associated
+                        // with the instance
+                        var keyHolder = new ChocolateLotState();
+                        reader.GetKeyValue(keyHolder, sample.Info.InstanceHandle);
+                        Console.WriteLine($"[lot_id: {keyHolder.lot_id} is completed]");
+                    }
                 }
             }
 
             return samplesRead;
         }
 
-        // Exercise #4.4: Add monitor_temperature function
+        // Add MonitorTemperature function
+        private static void MonitorTemperature(DataReader<Temperature> reader)
+        {
+            using var samples = reader.Take();
+            foreach (var data in samples.ValidData())
+            {
+                // Receive updates from tempering station about chocolate temperature.
+                // Only an error if below 30 or over 32 degrees Fahrenheit.
+                Console.WriteLine("Temperature high: " + data);
+            }
+        }
 
         private void RunExample(
             int domainId = 0,
             uint lotsToProcess = 10)
         {
+            // Loads the QoS from the qos_profiles.xml file.
+            var qosProvider = new QosProvider("./qos_profiles.xml");
+
             // A DomainParticipant allows an application to begin communicating in
             // a DDS domain. Typically there is one DomainParticipant per application.
-            // DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
+            // Load DomainParticipant QoS profile
+            var participantQos = qosProvider.GetDomainParticipantQos(
+                "ChocolateFactoryLibrary::MonitoringControlApplication");
             DomainParticipant participant = DomainParticipantFactory.Instance
-                .CreateParticipant(domainId);
+                .CreateParticipant(domainId, participantQos);
 
-            // A Topic has a name and a datatype. Create a Topic named
-            // "ChocolateLotState" with type ChocolateLotState.
-            Topic<ChocolateLotState> lotStateTopic = participant.CreateTopic<ChocolateLotState>(
-                "ChocolateLotState");
-            // Exercise #4.1: Add a Topic for Temperature to this application
+            // A Topic has a name and a datatype. Create a Topic with type
+            // ChocolateLotState.  Topic name is a constant defined in the IDL file.
+            Topic<ChocolateLotState> lotStateTopic =
+                participant.CreateTopic<ChocolateLotState>("ChocolateLotState");
+            // Add a Topic for Temperature to this application
+            Topic<Temperature> temperatureTopic =
+                participant.CreateTopic<Temperature>("ChocolateTemperature");
+            ContentFilteredTopic<Temperature> filteredTemperatureTopic =
+                participant.CreateContentFilteredTopic(
+                    name: "FilteredTemperature",
+                    relatedTopic: temperatureTopic,
+                    filter: new Filter(
+                        expression: "degrees > %0 or degrees < %1",
+                        parameters: new string[] { "32", "30" }));
 
             // A Publisher allows an application to create one or more DataWriters
             // Publisher QoS is configured in USER_QOS_PROFILES.xml
             Publisher publisher = participant.CreatePublisher();
 
             // This DataWriter writes data on Topic "ChocolateLotState"
-            // DataWriter QoS is configured in USER_QOS_PROFILES.xml
+            var writerQos = qosProvider.GetDataWriterQos(
+                "ChocolateFactoryLibrary::ChocolateLotStateProfile");
             DataWriter<ChocolateLotState> lotStateWriter =
-                publisher.CreateDataWriter(lotStateTopic);
+                publisher.CreateDataWriter(lotStateTopic, writerQos);
 
             // A Subscriber allows an application to create one or more DataReaders
             // Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -105,15 +138,28 @@ namespace KeysInstances
 
             // Create DataReader of Topic "ChocolateLotState".
             // DataReader QoS is configured in USER_QOS_PROFILES.xml
+            var readerQos = qosProvider.GetDataReaderQos(
+                "ChocolateFactoryLibrary::ChocolateLotStateProfile");
             DataReader<ChocolateLotState> lotStateReader =
-                subscriber.CreateDataReader(lotStateTopic);
+                subscriber.CreateDataReader(lotStateTopic, readerQos);
 
-            // Exercise #4.2: Add a DataReader for Temperature to this application
+            // Add a DataReader for Temperature to this application
+            readerQos = qosProvider.GetDataReaderQos(
+                "ChocolateFactoryLibrary::ChocolateTemperatureProfile");
+            DataReader<Temperature> temperatureReader =
+                subscriber.CreateDataReader(filteredTemperatureTopic, readerQos);
 
             // Obtain the DataReader's Status Condition
-            StatusCondition lotStateStatusCondition = lotStateReader.StatusCondition;
+            StatusCondition temperatureStatusCondition = temperatureReader.StatusCondition;
+            temperatureStatusCondition.EnabledStatuses = StatusMask.DataAvailable;
 
-            // Enable the 'data available' status.
+            // Associate a handler with the status condition. This will run when the
+            // condition is triggered, in the context of the dispatch call (see below)
+            temperatureStatusCondition.Triggered +=
+                _ => MonitorTemperature(temperatureReader);
+
+            // Do the same with the lotStateReader's StatusCondition
+            StatusCondition lotStateStatusCondition = lotStateReader.StatusCondition;
             lotStateStatusCondition.EnabledStatuses = StatusMask.DataAvailable;
 
             int lotsProcessed = 0;
@@ -121,10 +167,11 @@ namespace KeysInstances
                 _ => lotsProcessed += MonitorLotState(lotStateReader);
 
             // Create a WaitSet and attach the StatusCondition
-            WaitSet waitset = new WaitSet();
+            var waitset = new WaitSet();
             waitset.AttachCondition(lotStateStatusCondition);
 
-            // Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
+            // Add the new DataReader's StatusCondition to the Waitset
+            waitset.AttachCondition(temperatureStatusCondition);
 
             // Start publishing in a separate thread
             var startLotTask = Task.Run(() => PublishStartLot(lotStateWriter, lotsToProcess));

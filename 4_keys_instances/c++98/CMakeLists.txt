@@ -17,7 +17,6 @@ connextdds_add_example(
     IDL "chocolate_factory"
     LANG "C++"
     CODEGEN_ARGS
-        LEGACY_PLUGIN
     APPLICATION_NAMES
         "tempering_application"
         "monitoring_ctrl_application"
