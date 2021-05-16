@@ -81,7 +81,7 @@ def monitor_lot_state(reader):
 def monitor_temperature(reader):
     with reader.take() as samples:
         for sample in samples:
-            if sample.info.valid and sample["degrees"] > 32:
+            if sample.info.valid and sample.data["degrees"] > 32:
                 print(f"Temperature high: {sample}")
 
 
@@ -140,7 +140,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     status_condition.set_handler(handler)
 
-    temperature_status_condition = dds.StatusCondition(reader)
+    temperature_status_condition = dds.StatusCondition(temperature_reader)
 
     temperature_status_condition.enabled_statuses = (
         dds.StatusMask.data_available()
@@ -148,7 +148,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     def temperature_handler(_):
         nonlocal temperature_reader
-        monitor_lot_state(temperature_reader)
+        monitor_temperature(temperature_reader)
 
     temperature_status_condition.set_handler(temperature_handler)
 
