@@ -14,7 +14,7 @@ be found [here](https://github.com/rticommunity/connextdds-py).
 
 To generate the XML definition from IDL, run
 ```shell
-$ rtiddsgen -convertToXml ../temperature.idl
+$ rtiddsgen -convertToXml ../chocolate_factory.idl
 ```
 
 The example requires a valid license file, which can be configured with
@@ -25,9 +25,9 @@ the `RTI_LICENSE_FILE` environment variable. Follow the instructions under
 To run the examples, open two terminals.
 In one, run
 ```shell
-$ python3 TemperatureSubscriber.py
+$ python3 ChocolateFactorySubscriber.py
 ```
 In the other, run
 ```shell
-$ python3 TemperaturePublisher.py
+$ python3 ChocolateFactoryPublisher.py
 ```
