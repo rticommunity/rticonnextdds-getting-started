@@ -64,7 +64,7 @@ def run_example(domain_id, sample_count):
         status_condition = dds.StatusCondition(reader)
 
         # Enable the 'data available' status.
-        status_condition.enabled_statuses = dds.StatusMask.data_available()
+        status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
 
         # Initialize samples_read to zero
         samples_read = 0

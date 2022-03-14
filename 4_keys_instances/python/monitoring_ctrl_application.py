@@ -127,7 +127,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
     # Obtain the DataReader's Status Condition
     status_condition = dds.StatusCondition(reader)
     # Enable the 'data available' status.
-    status_condition.enabled_statuses = dds.StatusMask.data_available()
+    status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
 
     # Associate a handler with the status condition. This will run when the
     # condition is triggered, in the context of the dispatch call (see below)
@@ -143,7 +143,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
     temperature_status_condition = dds.StatusCondition(reader)
 
     temperature_status_condition.enabled_statuses = (
-        dds.StatusMask.data_available()
+        dds.StatusMask.DATA_AVAILABLE
     )
 
     def temperature_handler(_):
