@@ -24,7 +24,7 @@ class HelloWorldSubscriber:
         samples = reader.take_data()
         for sample in samples:
             print(f"Received: {sample}")
-    
+
         return len(samples)
 
     @staticmethod

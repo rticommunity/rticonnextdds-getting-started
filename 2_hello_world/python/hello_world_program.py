@@ -13,7 +13,6 @@ import argparse
 import sys
 from hello_world_publisher import HelloWorldPublisher
 from hello_world_subscriber import HelloWorldSubscriber
-from pkg_resources import require
 from dataclasses import dataclass
 
 @dataclass
@@ -93,7 +92,7 @@ def parse_arguments():
         default=sys.maxsize,
         type=check_sample_count_range,
         metavar=("[1-" + str(sys.maxsize-1) +"]"))
-		
+
     return parser.parse_args(namespace=ApplicationArguments)
 
 if __name__ == '__main__':

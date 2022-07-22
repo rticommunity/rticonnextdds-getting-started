@@ -10,82 +10,55 @@
 # to use the software.
 #
 
+import argparse
+import threading
+import time
+
 import rti.connextdds as dds
-import argparse  # for arg parsing
-import pathlib  # for getting the location of the XML file
-import threading  # For multithreading
-import time  # For sleeping
+from chocolate_factory import ChocolateLotState, LotStatusKind, StationKind, CHOCOLATE_LOT_STATE_TOPIC
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
-
-provider = dds.QosProvider(FILE)
-CHOCOLATE_LOT_TYPE = provider.type("ChocolateLotState")
-LOT_STATUS_KIND_TYPE = provider.type("LotStatusKind")
-STATION_KIND_TYPE = provider.type("StationKind")
-
-CHOCOLATE_LOT_STATE_TOPIC = "ChocolateLotState"
-CHOCOLATE_TEMPERATURE_TOPIC = "ChocolateTemperature"
-
-
-def publish_start_lot(writer, lots_to_process):
-    sample = dds.DynamicData(CHOCOLATE_LOT_TYPE)
+def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
+    sample = ChocolateLotState()
     try:
-        count = 0
-        while lots_to_process is None or count < lots_to_process:
+        for count in range(lots_to_process):
 
             # Set the values for a chocolate lot that is going to be sent to wait
             # at the tempering station
-            sample["lot_id"] = count % 100
-            # Enumeration members expect an integer,
-            # which can be obtained from `LOT_STATUS_KIND_TYPE[name].ordinal
-            sample["lot_status"] = LOT_STATUS_KIND_TYPE["WAITING"].ordinal
-            sample["next_station"] = STATION_KIND_TYPE[
-                "TEMPERING_CONTROLLER"
-            ].ordinal
-            print(
-                f"Starting lot:\n[lot_id: {sample['lot_id']}, next_station: {sample['next_station'].name}]"
-            )
+            sample.lot_id = count % 100
+            sample.lot_status = LotStatusKind.WAITING
+            sample.next_station = StationKind.TEMPERING_CONTROLLER
+
+            print("Starting lot:")
+            print(f"[lot_id: {sample.lot_id}, next_station: {sample.next_station}]")
 
             # Send an update to station that there is a lot waiting for tempering
             writer.write(sample)
-            time.sleep(8)
-            count += 1
+            time.sleep(10)
     except KeyboardInterrupt:
         pass
 
 
-def monitor_lot_state(reader):
-    # Take all samples.  Samples are loaned to application, loan is
-    # returned when LoanedSamples destructor called.
+def monitor_lot_state(reader: dds.DataReader) -> int:
+    # Take data samples and SampleInfo
     samples_read = 0
-    with reader.take() as samples:
-        # Receive updates from stations about the state of current lots
-        for sample in samples:
-            if sample.info.valid:
-                print("Recieved lot update: " + str(sample.data))
-                samples_read += 1
-            else:
-                # Exercise #3.2: Detect that a lot is complete by checking for
-                # the disposed state.
-                if (
-                    sample.info.state.instance_state
-                    == dds.InstanceState.not_alive_disposed()
-                ):
-                    key_holder = reader.key_value(sample.info.instance_handle)
-                    print(f"[lot_id: {key_holder['lot_id']} is completed]")
+    samples = reader.take()
+    # Receive updates from stations about the state of current lots
+    for data, info in samples:
+        if info.valid:
+            print(f"Recieved lot update: {data}")
+            samples_read += 1
+        else:
+            # Exercise #3.2: Detect that a lot is complete by checking for
+            # the disposed state.
+            pass
 
     return samples_read
 
 
 # Exercise #4.4: Add monitor_temperature function
-def monitor_temperature(reader):
-    with reader.take() as samples:
-        for sample in samples:
-            if sample.info.valid and sample["degrees"] > 32:
-                print(f"Temperature high: {sample}")
 
 
-def run_example(domain_id, lots_to_process, sensor_id):
+def run_example(domain_id, lots_to_process):
 
     # A DomainParticipant allows an application to begin communicating in
     # a DDS domain. Typically there is one DomainParticipant per application.
@@ -94,14 +67,9 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic with type
     # ChocolateLotState.  Topic name is a constant defined in the XML file.
-    topic = dds.DynamicData.Topic(
-        participant, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_LOT_TYPE
-    )
+    topic = dds.Topic(participant, CHOCOLATE_LOT_STATE_TOPIC, ChocolateLotState)
 
     # Exercise #4.1: Add a Topic for Temperature to this application
-    temperature_topic = dds.DynamicData.Topic(
-        participant, CHOCOLATE_TEMPERATURE_TOPIC, provider.type("Temperature")
-    )
 
     # A Publisher allows an application to create one or more DataWriters
     # Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -109,7 +77,7 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     # This DataWriter writes data on Topic "ChocolateLotState"
     # DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    writer = dds.DynamicData.DataWriter(publisher, topic)
+    writer = dds.DataWriter(publisher, topic)
 
     # A Subscriber allows an application to create one or more DataReaders
     # Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -117,58 +85,41 @@ def run_example(domain_id, lots_to_process, sensor_id):
 
     # Create DataReader of Topic "ChocolateLotState".
     # DataReader QoS is configured in USER_QOS_PROFILES.xml
-    reader = dds.DynamicData.DataReader(subscriber, topic)
+    lot_state_reader = dds.DynamicData.DataReader(subscriber, topic)
 
     # Exercise #4.2: Add a DataReader for Temperature to this application
-    temperature_reader = dds.DynamicData.DataReader(
-        subscriber, temperature_topic
-    )
 
     # Obtain the DataReader's Status Condition
-    status_condition = dds.StatusCondition(reader)
+    lot_state_status_condition = dds.StatusCondition(lot_state_reader)
     # Enable the 'data available' status.
-    status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
+    lot_state_status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
 
     # Associate a handler with the status condition. This will run when the
     # condition is triggered, in the context of the dispatch call (see below)
     lots_processed = 0
 
-    def handler(_):
+    def handler(_: dds.Condition):
         nonlocal lots_processed
-        nonlocal reader
-        lots_processed += monitor_lot_state(reader)
+        nonlocal lot_state_reader
+        lots_processed += monitor_lot_state(lot_state_reader)
 
-    status_condition.set_handler(handler)
-
-    temperature_status_condition = dds.StatusCondition(reader)
-
-    temperature_status_condition.enabled_statuses = (
-        dds.StatusMask.DATA_AVAILABLE
-    )
-
-    def temperature_handler(_):
-        nonlocal temperature_reader
-        monitor_lot_state(temperature_reader)
-
-    temperature_status_condition.set_handler(temperature_handler)
-
+    lot_state_status_condition.set_handler(handler)
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()
-    waitset += status_condition
+    waitset += lot_state_status_condition
 
     # Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
-    waitset += temperature_status_condition
 
     # Create a thread to periodically publish the temperature
     start_lot_thread = threading.Thread(
-        target=publish_start_lot, args=(writer, lots_to_process)
-    )
+        target=publish_start_lot,
+        args=(writer, lots_to_process))
     start_lot_thread.start()
     try:
-        while lots_to_process is None or lots_processed < lots_to_process:
+        while lots_processed < lots_to_process:
             # Dispatch will call the handlers associated to the WaitSet conditions
             # when they activate
-            waitset.dispatch(dds.Duration(4))  # Wait for up to 4s each time
+            waitset.dispatch(dds.Duration(10))  # Wait for up to 10s each time
     except KeyboardInterrupt:
         pass
 
@@ -194,14 +145,6 @@ if __name__ == "__main__":
         default=None,
         dest="sample_count",
     )
-    parser.add_argument(
-        "--sensor-id",
-        type=str,
-        action="store",
-        required=False,
-        default="0",
-        dest="sensor_id",
-    )
     args = parser.parse_args()
 
-    run_example(args.domain_id, args.sample_count, args.sensor_id)
+    run_example(args.domain_id, args.sample_count)

@@ -30,13 +30,13 @@ class HelloWorldPublisher:
         # This DataWriter will write data on Topic "Example HelloWorld"
         # DataWriter QoS is configured in USER_QOS_PROFILES.xml
         writer = dds.DataWriter(participant.implicit_publisher, topic)
-        sample = HelloWorld()        
 
+        sample = HelloWorld()
         for count in range(sample_count):
             # Catch control-C interrupt
             try:
                 # Modify the data to be sent here
-                
+
                 print(f"Writing HelloWorld, count {count}")
                 writer.write(sample)
                 time.sleep(1)
