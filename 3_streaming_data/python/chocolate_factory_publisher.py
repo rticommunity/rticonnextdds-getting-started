@@ -16,7 +16,7 @@ import argparse
 import time
 
 import rti.connextdds as dds
-from chocolate_factory import Temperature, ChocolateLotState
+from chocolate_factory import Temperature, ChocolateLotState, LotStatusKind
 
 def run_example(domain_id, sample_count, sensor_id):
 
@@ -29,7 +29,7 @@ def run_example(domain_id, sample_count, sensor_id):
     # "ChocolateTemperature" with type Temperature
     topic = dds.Topic(participant, "ChocolateTemperature", Temperature)
 
-    # Exercise #2.1: Add a new Topic
+    # Exercise #2.1: Add new Topic
 
 
     # A Publisher allows an application to create one or more DataWriters
@@ -44,9 +44,8 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # Create data sample for writing
     sample = Temperature()
-    i = 0
     try:
-        while sample_count is None or i < sample_count:
+        for count in range(sample_count):
             # Modify the data to be written here
             sample.sensor_id = sensor_id
             # random number x where 30 <= x <= 32
@@ -54,14 +53,11 @@ def run_example(domain_id, sample_count, sensor_id):
 
             # Exercise #2.3: Write data with new ChocolateLotState DataWriter
 
-            print(f"Writing ChocolateTemperature, count {i}")
+            print(f"Writing ChocolateTemperature, count {count}")
             writer.write(sample)
 
-            # Exercise 1.1: Change this to sleep 100 ms in between writing
-            # temperatures
+            # Exercise 1.1: Change this to sleep 100 ms in between writing temperatures
             time.sleep(4)
-
-            i += 1
 
     except KeyboardInterrupt:
         pass
@@ -83,7 +79,7 @@ if __name__ == "__main__":
         type=int,
         action="store",
         required=False,
-        default=None,
+        default=100000,
         dest="sample_count",
     )
     parser.add_argument(

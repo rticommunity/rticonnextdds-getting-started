@@ -64,7 +64,7 @@ def run_example(domain_id, sample_count):
         # Dispatch will call the handlers associated to the WaitSet conditions
         # when they activate
         while sample_count is None or samples_read < sample_count:
-            print("ChocolateTemperature subcriber sleeping for 4 sec...")
+            print("ChocolateTemperature subcriber sleeping for up to 4 sec...")
             waitset.dispatch(dds.Duration(4))  # Wait up to 4s each time
     except KeyboardInterrupt:
         pass
