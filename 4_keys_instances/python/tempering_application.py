@@ -46,16 +46,16 @@ def process_lot(
     lot_state_writer: dds.DataWriter
 ):
     # Process lots waiting for tempering
-    for data, info in lot_state_reader.take():
-        if info.valid and data.next_station == StationKind.TEMPERING_CONTROLLER:
+    for data in lot_state_reader.take_data():
+        if data.next_station == StationKind.TEMPERING_CONTROLLER:
             print(f"Processing lot #{data.lot_id}")
 
             # Send an update that the tempering station is processing lot
             updated_state = ChocolateLotState(
                 lot_id=data.lot_id,
                 lot_status=LotStatusKind.PROCESSING,
-                next_station=StationKind.TEMPERING_CONTROLLER,
-                station=StationKind.TEMPERING_CONTROLLER)
+                station=StationKind.TEMPERING_CONTROLLER,
+                next_station=StationKind.INVALID_CONTROLLER)
             lot_state_writer.write(updated_state)
 
             # "Processing" the lot.

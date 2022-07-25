@@ -15,7 +15,7 @@ import threading
 import time
 
 import rti.connextdds as dds
-from chocolate_factory import ChocolateLotState, LotStatusKind, StationKind, CHOCOLATE_LOT_STATE_TOPIC
+from chocolate_factory import ChocolateLotState, Temperature, LotStatusKind, StationKind, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_TEMPERATURE_TOPIC
 
 def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
     sample = ChocolateLotState()
@@ -28,8 +28,8 @@ def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
             sample.lot_status = LotStatusKind.WAITING
             sample.next_station = StationKind.TEMPERING_CONTROLLER
 
-            print("Starting lot:")
-            print(f"[lot_id: {sample.lot_id}, next_station: {sample.next_station}]")
+            print("\nStarting lot:")
+            print(f"[lot_id: {sample.lot_id}, next_station: {str(sample.next_station)}]")
 
             # Send an update to station that there is a lot waiting for tempering
             writer.write(sample)
@@ -39,26 +39,20 @@ def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
 
 
 def monitor_lot_state(reader: dds.DataReader) -> int:
-    # Take data samples and SampleInfo
-    samples_read = 0
-    samples = reader.take()
     # Receive updates from stations about the state of current lots
-    for data, info in samples:
-        if info.valid:
-            print(f"Recieved lot update: {data}")
-            samples_read += 1
-        else:
-            # Exercise #3.2: Detect that a lot is complete by checking for
-            # the disposed state.
-            pass
+    samples_read = 0
+
+    # Exercise #3.2: Detect that a lot is complete by checking for
+    # the disposed state.
+    for data in reader.take_data():
+        print("Received lot update:")
+        print(data)
+        samples_read += 1
 
     return samples_read
 
 
-# Exercise #4.4: Add monitor_temperature function
-
-
-def run_example(domain_id, lots_to_process):
+def run_example(domain_id: int, lots_to_process: int):
 
     # A DomainParticipant allows an application to begin communicating in
     # a DDS domain. Typically there is one DomainParticipant per application.
@@ -85,7 +79,7 @@ def run_example(domain_id, lots_to_process):
 
     # Create DataReader of Topic "ChocolateLotState".
     # DataReader QoS is configured in USER_QOS_PROFILES.xml
-    lot_state_reader = dds.DynamicData.DataReader(subscriber, topic)
+    lot_state_reader = dds.DataReader(subscriber, topic)
 
     # Exercise #4.2: Add a DataReader for Temperature to this application
 
@@ -142,7 +136,7 @@ if __name__ == "__main__":
         type=int,
         action="store",
         required=False,
-        default=None,
+        default=10000,
         dest="sample_count",
     )
     args = parser.parse_args()
