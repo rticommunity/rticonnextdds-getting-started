@@ -89,7 +89,7 @@ def run_example(domain_id: int, lots_to_process: int):
     # Create DataReader of Topic "ChocolateLotState".
     # Exercise #1.3: Update the lot_state_reader and temperature_reader
     # to use correct QoS
-    lot_state_reader = dds.DataReader(subscriber, topic)
+    lot_state_reader = dds.DataReader(subscriber, lot_state_topic)
 
     # Add a DataReader for Temperature
     temperature_reader = dds.DataReader(subscriber, temperature_topic)

@@ -74,7 +74,7 @@ def run_example(domain_id, sensor_id):
     participant = dds.DomainParticipant(domain_id)
 
     # A Topic has a name and a datatype. Create Topics.
-    # Topic names are constants defined in the XML file.
+    # Topic names are constants defined in the IDL file.
     temperature_topic = dds.Topic(
         participant,
         CHOCOLATE_TEMPERATURE_TOPIC,
