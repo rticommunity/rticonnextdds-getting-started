@@ -70,7 +70,7 @@ def process_lot(
 
 
 def on_requested_incompatible_qos(reader: dds.DataReader):
-    incompatible_policy = reader.requested_incompatible_qos_status.last_policy_id
+    incompatible_policy = reader.requested_incompatible_qos_status.last_policy
     # Exercise #3.1 add a message to print when this DataReader discovers an
     # incompatible DataWriter
 
