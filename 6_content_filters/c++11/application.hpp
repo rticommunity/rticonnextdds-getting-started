@@ -63,7 +63,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     srand((unsigned int)time(NULL));
     std::string sensor_id = std::to_string(rand() % 50);
     std::string station_kind("COCOA_BUTTER_CONTROLLER");
-    rti::config::Verbosity verbosity;
+    rti::config::Verbosity verbosity = rti::config::Verbosity::EXCEPTION;
 
     while (arg_processing < argc) {
         if ((argc > arg_processing + 1)
