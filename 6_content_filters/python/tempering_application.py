@@ -1,5 +1,5 @@
 #
-# (c) Copyright, Real-Time Innovations, 2020.  All rights reserved.
+# (c) Copyright, Real-Time Innovations, 2022.  All rights reserved.
 # RTI grants Licensee a license to use, modify, compile, and create derivative
 # works of the software solely for use with RTI Connext DDS. Licensee may
 # redistribute copies of the software provided that all such copies are subject
@@ -47,6 +47,8 @@ def process_lot(
 ):
     # Process lots waiting for tempering
     for data in lot_state_reader.take_data():
+        # Exercise #1.3: Remove the check that the Tempering Application is
+        # the next_station. This will now be filtered automatically.
         if data.next_station == StationKind.TEMPERING_CONTROLLER:
             print(f"Processing lot #{data.lot_id}")
 
@@ -61,17 +63,31 @@ def process_lot(
             # "Processing" the lot.
             time.sleep(5)
 
-            # Exercise #3.1: Since this is the last step in processing,
+            # Since this is the last step in processing,
             # notify the monitoring application that the lot is complete
             # using a dispose
+            lot_state_writer.dispose_instance(
+              lot_state_writer.lookup_instance(updated_state))
+            print("Lot completed")
 
+
+def on_requested_incompatible_qos(reader: dds.DataReader):
+    incompatible_policy = reader.requested_incompatible_qos_status.last_policy
+    print(f"Discovered DataWriter with incompatible policy: {incompatible_policy}")
 
 
 def run_example(domain_id, sensor_id):
+    # Loads the QoS from the qos_profile.xml file
+    qos_provider = dds.QosProvider("./qos_profiles.xml")
+
+
     # A DomainParticipant allows an application to begin communicating in
     # a DDS domain. Typically there is one DomainParticipant per application.
-    # DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
-    participant = dds.DomainParticipant(domain_id)
+    # Uses TemperingApplication QoS profile to set participant name.
+    participant = dds.DomainParticipant(
+        domain_id,
+        qos=qos_provider.participant_qos_from_profile(
+            "ChocolateFactoryLibrary::TemperingApplication"))
 
     # A Topic has a name and a datatype. Create Topics.
     # Topic names are constants defined in the IDL file.
@@ -84,32 +100,58 @@ def run_example(domain_id, sensor_id):
         CHOCOLATE_LOT_STATE_TOPIC,
         ChocolateLotState)
 
+    # Exercise #1.1: Create a Content-Filtered Topic that filters out
+    # chocolate lot state unless the next_station = TEMPERING_CONTROLLER
+
     # A Publisher allows an application to create one or more DataWriters
     # Publisher QoS is configured in USER_QOS_PROFILES.xml
     publisher = dds.Publisher(participant)
 
-    # Create DataWriters of Topics "ChocolateTemperature" & "ChocolateLotState"
-    # DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    temperature_writer = dds.DataWriter(publisher, temperature_topic)
-    lot_state_writer = dds.DataWriter(publisher, lot_state_topic)
+    # Create DataWriters of Topic "ChocolateTemperature"
+    # using ChocolateTemperatureProfile QoS profile for Streaming Data
+    temperature_writer = dds.DataWriter(
+        publisher,
+        temperature_topic,
+        qos=qos_provider.datawriter_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateTemperatureProfile"))
+
+    # Create DataWriter of Topic "ChocolateLotState"
+    # using ChocolateLotStateProfile QoS profile for State Data
+    lot_state_writer = dds.DataWriter(
+        publisher,
+        lot_state_topic,
+        qos=qos_provider.datawriter_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateLotStateProfile"))
 
     # A Subscriber allows an application to create one or more DataReaders
     # Subscriber QoS is configured in USER_QOS_PROFILES.xml
     subscriber = dds.Subscriber(participant)
 
     # Create DataReader of Topic "ChocolateLotState".
-    # DataReader QoS is configured in USER_QOS_PROFILES.xml
-    lot_state_reader = dds.DataReader(subscriber, lot_state_topic)
+    # using ChocolateLotStateProfile QoS profile for State Data
+    # Exercise #1.2: Change the DataReader's Topic to use a
+    # Content-Filtered Topic
+    lot_state_reader = dds.DataReader(
+        subscriber,
+        lot_state_topic,
+        qos=qos_provider.datareader_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateLotStateProfile"))
 
-    # Obtain the DataReader's Status Condition
+    # Obtain the DataReader's Status Condition and enable the the 
+    # 'data available' and 'requested incompatible qos' statuses
     status_condition = dds.StatusCondition(lot_state_reader)
-    # Enable the 'data available' status.
-    status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
+    status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE | dds.StatusMask.REQUESTED_INCOMPATIBLE_QOS
 
     # Associate a handler with the status condition. This will run when the
     # condition is triggered, in the context of the dispatch call (see below)
     def handler(_: dds.Condition):
-        process_lot(lot_state_reader, lot_state_writer)
+        status = lot_state_reader.status_changes
+        if dds.StatusMask.DATA_AVAILABLE in status:
+            process_lot(lot_state_reader, lot_state_writer)
+
+        if dds.StatusMask.REQUESTED_INCOMPATIBLE_QOS in status:
+            on_requested_incompatible_qos(lot_state_reader)
+
     status_condition.set_handler(handler)
 
     # Create a WaitSet and attach the StatusCondition

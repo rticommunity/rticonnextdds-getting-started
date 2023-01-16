@@ -66,7 +66,7 @@ unsigned int monitor_lot_state(dds::sub::DataReader<ChocolateLotState>& reader)
             // Detect that a lot is complete by checking for
             // the disposed state.
             if (sample.info().state().instance_state()
-                    == dds::sub::all::InstanceState::not_alive_disposed()) {
+                    == dds::sub::status::InstanceState::not_alive_disposed()) {
                 ChocolateLotState key_holder;
                 // Fills in only the key field values associated with the
                 // instance
