@@ -11,28 +11,11 @@
 #
 
 
+import argparse
 import rti.connextdds as dds
-import pathlib  # to get the location of the XML file
-import random  # for generating random numbers
-import argparse  # for arg parsing
-import time  # for sleeping
+from chocolate_factory import Temperature
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
-
-def process_data(reader):
-    # Take all samples.  Samples are loaned to application, loan is
-    # returned when the variable sample goes out of scope
-    samples_read = 0
-    with reader.take() as samples:
-        for sample in samples:
-            if sample.info.valid:
-                samples_read += 1
-                print(f"Received {sample.data}")
-
-    return samples_read
-
-
-def run_example(domain_id, sample_count, sensor_id):
+def run_example(domain_id, sample_count):
 
     # A DomainParticipant allows an application to begin communicating in
     # a DDS domain. Typically there is one DomainParticipant per application.
@@ -41,10 +24,7 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic named
     # "ChocolateTemperature" with type Temperature
-    temperature_type = dds.QosProvider(FILE).type("Temperature")
-    topic = dds.DynamicData.Topic(
-        participant, "ChocolateTemperature", temperature_type
-    )
+    topic = dds.Topic(participant, "ChocolateTemperature", Temperature)
 
     # A Subscriber allows an application to create one or more DataReaders
     # Subscriber QoS is configured in USER_QOS_PROFILES.xml
@@ -53,7 +33,7 @@ def run_example(domain_id, sample_count, sensor_id):
     # This DataReader reads data of type Temperature on Topic
     # "ChocolateTemperature". DataReader QoS is configured in
     # USER_QOS_PROFILES.xml
-    reader = dds.DynamicData.DataReader(subscriber, topic)
+    reader = dds.DataReader(subscriber, topic)
 
     # Obtain the DataReader's Status Condition
     status_condition = dds.StatusCondition(reader)
@@ -65,12 +45,16 @@ def run_example(domain_id, sample_count, sensor_id):
     # condition is triggered, in the context of the dispatch call (see below)
     samples_read = 0
 
-    def handler(_):
+    def process_data(_):
         nonlocal samples_read
         nonlocal reader
-        samples_read += process_data(reader)
+        samples = reader.take_data()
+        for sample in samples:
+            print(sample)
 
-    status_condition.set_handler(handler)
+        samples_read += len(samples)
+
+    status_condition.set_handler(process_data)
 
     # Create a WaitSet and attach the StatusCondition
     waitset = dds.WaitSet()
@@ -80,14 +64,13 @@ def run_example(domain_id, sample_count, sensor_id):
         # Dispatch will call the handlers associated to the WaitSet conditions
         # when they activate
         while sample_count is None or samples_read < sample_count:
-            print("ChocolateTemperature subcriber sleeping for 4 sec...")
+            print("ChocolateTemperature subcriber sleeping for up to 4 sec...")
             waitset.dispatch(dds.Duration(4))  # Wait up to 4s each time
     except KeyboardInterrupt:
         pass
 
 
 if __name__ == "__main__":
-    # parse the arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--domain-id",
@@ -105,14 +88,7 @@ if __name__ == "__main__":
         default=None,
         dest="sample_count",
     )
-    parser.add_argument(
-        "--sensor-id",
-        type=str,
-        action="store",
-        required=False,
-        default="0",
-        dest="sensor_id",
-    )
+
     args = parser.parse_args()
 
-    run_example(args.domain_id, args.sample_count, args.sensor_id)
+    run_example(args.domain_id, args.sample_count)

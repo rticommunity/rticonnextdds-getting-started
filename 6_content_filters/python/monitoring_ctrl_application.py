@@ -1,5 +1,5 @@
 #
-# (c) Copyright, Real-Time Innovations, 2020.  All rights reserved.
+# (c) Copyright, Real-Time Innovations, 2022.  All rights reserved.
 # RTI grants Licensee a license to use, modify, compile, and create derivative
 # works of the software solely for use with RTI Connext DDS. Licensee may
 # redistribute copies of the software provided that all such copies are subject
@@ -17,7 +17,7 @@ import time
 import rti.connextdds as dds
 from chocolate_factory import ChocolateLotState, Temperature, LotStatusKind, StationKind, CHOCOLATE_LOT_STATE_TOPIC, CHOCOLATE_TEMPERATURE_TOPIC
 
-def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
+def publish_start_lot(lot_state_writer: dds.DataWriter, lots_to_process: int):
     sample = ChocolateLotState()
     try:
         for count in range(lots_to_process):
@@ -26,13 +26,13 @@ def publish_start_lot(writer: dds.DataWriter, lots_to_process: int):
             # at the tempering station
             sample.lot_id = count % 100
             sample.lot_status = LotStatusKind.WAITING
-            sample.next_station = StationKind.TEMPERING_CONTROLLER
+            sample.next_station = StationKind.COCOA_BUTTER_CONTROLLER
 
             print("\nStarting lot:")
             print(f"[lot_id: {sample.lot_id}, next_station: {str(sample.next_station)}]")
 
             # Send an update to station that there is a lot waiting for tempering
-            writer.write(sample)
+            lot_state_writer.write(sample)
             time.sleep(10)
     except KeyboardInterrupt:
         pass
@@ -42,46 +42,84 @@ def monitor_lot_state(reader: dds.DataReader) -> int:
     # Receive updates from stations about the state of current lots
     samples_read = 0
 
-    # Exercise #3.2: Detect that a lot is complete by checking for
-    # the disposed state.
-    for data in reader.take_data():
+    for data, info in reader.take():
         print("Received lot update:")
-        print(data)
-        samples_read += 1
+        if info.valid:
+            print(data)
+            samples_read += 1
+        # Detect that a lot is complete by checking for
+        # the disposed state.
+        elif info.state.instance_state == dds.InstanceState.NOT_ALIVE_DISPOSED:
+            key_holder = reader.key_value(info.instance_handle)
+            print(f"[Lot {key_holder.lot_id} is completed]")
 
     return samples_read
 
 
 def run_example(domain_id: int, lots_to_process: int):
 
+    qos_provider = dds.QosProvider("./qos_profiles.xml")
+
     # A DomainParticipant allows an application to begin communicating in
     # a DDS domain. Typically there is one DomainParticipant per application.
-    # DomainParticipant QoS is configured in USER_QOS_PROFILES.xml
-    participant = dds.DomainParticipant(domain_id)
+    participant = dds.DomainParticipant(
+        domain_id,
+        qos=qos_provider.participant_qos_from_profile(
+            "ChocolateFactoryLibrary::MonitoringControlApplication"))
 
     # A Topic has a name and a datatype. Create a Topic with type
-    # ChocolateLotState.  Topic name is a constant defined in the IDL file.
-    topic = dds.Topic(participant, CHOCOLATE_LOT_STATE_TOPIC, ChocolateLotState)
-
-    # Exercise #4.1: Add a Topic for Temperature to this application
+    # ChocolateLotState. Topic name is a constant defined in the IDL file.
+    lot_state_topic = dds.Topic(
+        participant, CHOCOLATE_LOT_STATE_TOPIC, ChocolateLotState)
+    temperature_topic = dds.Topic(
+        participant, CHOCOLATE_TEMPERATURE_TOPIC, Temperature)
+    filtered_temperature_topic = dds.ContentFilteredTopic(
+        temperature_topic,
+        "FilteredTemperature",
+        dds.Filter("degrees > %0 or degrees < %1", ["32", "30"]))
 
     # A Publisher allows an application to create one or more DataWriters
     # Publisher QoS is configured in USER_QOS_PROFILES.xml
     publisher = dds.Publisher(participant)
 
     # This DataWriter writes data on Topic "ChocolateLotState"
-    # DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    writer = dds.DataWriter(publisher, topic)
+    lot_state_writer = dds.DataWriter(
+        publisher,
+        lot_state_topic,
+        qos=qos_provider.datawriter_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateLotStateProfile"))
 
     # A Subscriber allows an application to create one or more DataReaders
     # Subscriber QoS is configured in USER_QOS_PROFILES.xml
     subscriber = dds.Subscriber(participant)
 
     # Create DataReader of Topic "ChocolateLotState".
-    # DataReader QoS is configured in USER_QOS_PROFILES.xml
-    lot_state_reader = dds.DataReader(subscriber, topic)
+    lot_state_reader = dds.DataReader(
+        subscriber,
+        lot_state_topic,
+        qos=qos_provider.datareader_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateLotStateProfile"))
 
-    # Exercise #4.2: Add a DataReader for Temperature to this application
+    # Add a DataReader for Temperature
+    temperature_reader = dds.DataReader(
+        subscriber,
+        filtered_temperature_topic,
+        qos=qos_provider.datareader_qos_from_profile(
+            "ChocolateFactoryLibrary::ChocolateTemperatureProfile"))
+
+    # Obtain the DataReader's Status condition and enable the 'data available'
+    # estatus.
+    temperature_status_condition = dds.StatusCondition(temperature_reader)
+    temperature_status_condition.enabled_statuses = dds.StatusMask.DATA_AVAILABLE
+
+    # Receive updates from tempering station about chocolate temperature.
+    # Only an error if below 30 or over 32 degrees Fahrenheit.
+    def monitor_temperature(_: dds.Condition):
+        for t in temperature_reader.take_data():
+            print(f"Tempering temperature out of range: {t.degrees}")
+
+    # Associate monitor_temperature to the status condition
+    temperature_status_condition.set_handler(monitor_temperature)
 
     # Obtain the DataReader's Status Condition
     lot_state_status_condition = dds.StatusCondition(lot_state_reader)
@@ -94,20 +132,18 @@ def run_example(domain_id: int, lots_to_process: int):
 
     def handler(_: dds.Condition):
         nonlocal lots_processed
-        nonlocal lot_state_reader
         lots_processed += monitor_lot_state(lot_state_reader)
 
     lot_state_status_condition.set_handler(handler)
-    # Create a WaitSet and attach the StatusCondition
+    # Create a WaitSet and attach the StatusConditions
     waitset = dds.WaitSet()
     waitset += lot_state_status_condition
-
-    # Exercise #4.3: Add the new DataReader's StatusCondition to the Waitset
+    waitset += temperature_status_condition
 
     # Create a thread to periodically publish the temperature
     start_lot_thread = threading.Thread(
         target=publish_start_lot,
-        args=(writer, lots_to_process))
+        args=(lot_state_writer, lots_to_process))
     start_lot_thread.start()
     try:
         while lots_processed < lots_to_process:

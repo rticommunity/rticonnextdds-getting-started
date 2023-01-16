@@ -100,7 +100,7 @@ void run_example(unsigned int domain_id, const std::string& station_kind)
 
     // A DomainParticipant allows an application to begin communicating in
     // a DDS domain. Typically there is one DomainParticipant per application.
-    // Uses TemperingApplication QoS profile to set participant name.
+    // Uses IngredientApplication QoS profile to set participant name.
     dds::domain::DomainParticipant participant(
             domain_id,
             qos_provider.participant_qos(

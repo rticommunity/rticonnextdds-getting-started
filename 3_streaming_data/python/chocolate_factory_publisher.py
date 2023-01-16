@@ -11,13 +11,12 @@
 #
 
 
-import rti.connextdds as dds
-import pathlib  # For finding the xml file
-import random  # For generating random data points
-import argparse  # For parsing args
-import time  # For sleep
+import random
+import argparse
+import time
 
-FILE = str(pathlib.Path(__file__).parent.absolute()) + "/../chocolate_factory.xml"
+import rti.connextdds as dds
+from chocolate_factory import Temperature, ChocolateLotState, LotStatusKind
 
 def run_example(domain_id, sample_count, sensor_id):
 
@@ -28,19 +27,10 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # A Topic has a name and a datatype. Create a Topic named
     # "ChocolateTemperature" with type Temperature
-    provider = dds.QosProvider(FILE)
-    temperature_type = provider.type("Temperature")
-    lot_status_kind_type = provider.type("LotStatusKind")
+    topic = dds.Topic(participant, "ChocolateTemperature", Temperature)
 
-    topic = dds.DynamicData.Topic(
-        participant, "ChocolateTemperature", temperature_type
-    )
+    # Exercise #2.1: Add new Topic
 
-    # Exercise #2.1: Add a new Topic
-    lot_state_type = provider.type("ChocolateLotState")
-    lot_state_topic = dds.DynamicData.Topic(
-        participant, "ChocolateLotState", lot_state_type
-    )
 
     # A Publisher allows an application to create one or more DataWriters
     # Publisher QoS is configured in USER_QOS_PROFILES.xml
@@ -48,40 +38,26 @@ def run_example(domain_id, sample_count, sensor_id):
 
     # This DataWriter writes data on Topic "ChocolateTemperature"
     # DataWriter QoS is configured in USER_QOS_PROFILES.xml
-    writer = dds.DynamicData.DataWriter(publisher, topic)
-
-    # Create data sample for writing
-    temperature_sample = dds.DynamicData(temperature_type)
+    writer = dds.DataWriter(publisher, topic)
 
     # Exercise #2.2: Add new DataWriter and data sample
-    lot_state_writer = dds.DynamicData.DataWriter(publisher, lot_state_topic)
-    lot_state_sample = dds.DynamicData(lot_state_type)
 
-    i = 0
+    # Create data sample for writing
+    sample = Temperature()
     try:
-        while sample_count is None or i < sample_count:
+        for count in range(sample_count):
             # Modify the data to be written here
-            temperature_sample["sensor_id"] = sensor_id
-            # Generate a number x where 30 <= x <= 32
-            temperature_sample["degrees"] = random.randint(30, 32)
+            sample.sensor_id = sensor_id
+            # random number x where 30 <= x <= 32
+            sample.degrees = random.randint(30, 32)
 
             # Exercise #2.3: Write data with new ChocolateLotState DataWriter
-            # Note: We're adding a writer but no reader, this exercise can be
-            # viewed using rtiddsspy
-            lot_state_sample["lot_id"] = i % 100
-            lot_state_sample["lot_status"] = lot_status_kind_type[
-                "PROCESSING"
-            ].ordinal
-            lot_state_writer.write(lot_state_sample)
 
-            print(f"Writing ChocolateTemperature, count {i}")
-            writer.write(temperature_sample)
+            print(f"Writing ChocolateTemperature, count {count}")
+            writer.write(sample)
 
-            # Exercise 1.1: Change this to sleep 100 ms in between writing
-            # temperatures
+            # Exercise 1.1: Change this to sleep 100 ms in between writing temperatures
             time.sleep(4)
-
-            i += 1
 
     except KeyboardInterrupt:
         pass
@@ -103,7 +79,7 @@ if __name__ == "__main__":
         type=int,
         action="store",
         required=False,
-        default=None,
+        default=100000,
         dest="sample_count",
     )
     parser.add_argument(

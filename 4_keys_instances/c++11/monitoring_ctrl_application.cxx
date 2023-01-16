@@ -117,7 +117,7 @@ void run_example(unsigned int domain_id, unsigned int lots_to_process)
     // Associate a handler with the status condition. This will run when the
     // condition is triggered, in the context of the dispatch call (see below)
     unsigned int lots_processed = 0;
-   lot_state_status_condition.extensions().handler(
+    lot_state_status_condition.extensions().handler(
             [&lot_state_reader, &lots_processed]() {
                 lots_processed += monitor_lot_state(lot_state_reader);
             });
