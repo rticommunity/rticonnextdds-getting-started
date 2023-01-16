@@ -59,7 +59,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     unsigned int sample_count = (std::numeric_limits<unsigned int>::max)();
     srand((unsigned int)time(NULL));
     std::string sensor_id = std::to_string(rand() % 50);
-    rti::config::Verbosity verbosity;
+    rti::config::Verbosity verbosity = rti::config::Verbosity::EXCEPTION;
 
     while (arg_processing < argc) {
         if ((argc > arg_processing + 1)

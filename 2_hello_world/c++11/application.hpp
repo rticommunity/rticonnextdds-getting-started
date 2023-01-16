@@ -56,7 +56,7 @@ inline ApplicationArguments parse_arguments(int argc, char *argv[])
     ParseReturn parse_result = ParseReturn::ok;
     unsigned int domain_id = 0;
     unsigned int sample_count = (std::numeric_limits<unsigned int>::max)();
-    rti::config::Verbosity verbosity;
+    rti::config::Verbosity verbosity = rti::config::Verbosity::EXCEPTION;
 
     while (arg_processing < argc) {
         if ((argc > arg_processing + 1)
