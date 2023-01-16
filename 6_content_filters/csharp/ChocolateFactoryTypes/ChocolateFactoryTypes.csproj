@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Rti.ConnextDds" Version="6.1.1" />
+    <PackageReference Include="Rti.ConnextDds" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
