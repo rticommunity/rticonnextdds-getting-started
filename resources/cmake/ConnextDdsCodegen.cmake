@@ -1,8 +1,13 @@
 # (c) 2017 Copyright, Real-Time Innovations, Inc.  All rights reserved.
-# No duplications, whole or partial, manual or electronic, may be made
-# without express written permission.  Any such copies, or revisions thereof,
-# must display this notice unaltered.
-# This code contains trade secrets of Real-Time Innovations, Inc.
+#
+# RTI grants Licensee a license to use, modify, compile, and create derivative
+# works of the software solely for use with RTI Connext DDS.  Licensee may
+# redistribute copies of the software provided that all such copies are
+# subject to this license. The software is provided "as is", with no warranty
+# of any type, including any warranty for fitness for any purpose. RTI is
+# under no obligation to maintain or support the software.  RTI shall not be
+# liable for any incidental or consequential damages arising out of the use or
+# inability to use the software.
 
 #[[.rst:
 .. _connextdds_codegen:
@@ -27,6 +32,7 @@ Generate a source files using RTI Codegen::
         [VAR variable]
         [NOT_REPLACE]
         [PACKAGE package]
+        [STRING_SIZE size]
         [DISABLE_PREPROCESSOR]
         [INCLUDE_DIRS ...]
         [DEFINES ...]
@@ -54,7 +60,7 @@ Arguments:
 
 ``LANG`` (mandatory)
     The language to generate source files for. Expected values are:
-    C, C++, C++03, C++11, C++/CLI, C# and Java.
+    C, C++, C++98, C++03, C++11, C++/CLI, C# and Java.
 
 ``VAR``
     Use ``VAR`` as a prefix instead of using the IDL basename to name return
@@ -71,6 +77,9 @@ Arguments:
 ``PACKAGE`` (optional)
     Specify the package name for Java source type files.
 
+``PACKAGE`` (optional)
+    Specify the size of the unbounded strings type.
+
 ``IGNORE_ALIGNMENT`` (optional)
     Generate type files with -ignoreAlignment flag enabled
 
@@ -85,6 +94,7 @@ Arguments:
 
 ``DISABLE_PREPROCESSOR`` (optional)
     Disable the use of a preprocessor in Codegen
+
 
 ``STANDALONE`` (optional)
     Generate typecode files independant to RTI Connext DDS libraries.
@@ -359,7 +369,9 @@ function(_connextdds_codegen_get_generated_file_list)
             set(${_CODEGEN_VAR}_SUBSCRIBER_SOURCE PARENT_SCOPE)
         endif()
 
-    elseif("${_CODEGEN_LANG}" STREQUAL "C++")
+    elseif("${_CODEGEN_LANG}" STREQUAL "C++"
+        OR "${_CODEGEN_LANG}" STREQUAL "C++98"
+    )
         set(sources "${path_base}.cxx")
         set(headers "${path_base}.h")
 
@@ -392,7 +404,8 @@ function(_connextdds_codegen_get_generated_file_list)
         endif()
 
     elseif("${_CODEGEN_LANG}" STREQUAL "C#"
-            OR "${_CODEGEN_LANG}" STREQUAL "C++/CLI")
+        OR "${_CODEGEN_LANG}" STREQUAL "C++/CLI"
+    )
         set(${_CODEGEN_VAR}_SOURCES
             "${path_base}.cpp"
             "${path_base}Plugin.cpp"
@@ -418,15 +431,16 @@ function(_connextdds_codegen_get_generated_file_list)
                 PARENT_SCOPE)
         endif()
     elseif("${_CODEGEN_LANG}" STREQUAL "C++03"
-            OR "${_CODEGEN_LANG}" STREQUAL "C++11")
+        OR "${_CODEGEN_LANG}" STREQUAL "C++11"
+    )
         set(sources
             "${path_base}.cxx"
             "${path_base}Plugin.cxx"
         )
-        set(${_CODEGEN_VAR}_HEADERS
+        set(headers
             "${path_base}.hpp"
             "${path_base}Plugin.hpp"
-            PARENT_SCOPE)
+        )
 
         if(${_CODEGEN_GENERATE_EXAMPLE})
             set(${_CODEGEN_VAR}_PUBLISHER_SOURCE
@@ -491,10 +505,16 @@ endfunction()
 function(connextdds_rtiddsgen_run)
     set(options
         NOT_REPLACE UNBOUNDED IGNORE_ALIGNMENT USE42_ALIGNMENT
-        OPTIMIZE_ALIGNMENT NO_TYPECODE DISABLE_PREPROCESSOR 
+        OPTIMIZE_ALIGNMENT NO_TYPECODE DISABLE_PREPROCESSOR
         STANDALONE USE_CODEGEN1 DEBUG NO_CODE_GENERATION GENERATE_EXAMPLE
     )
-    set(single_value_args LANG OUTPUT_DIRECTORY IDL_FILE VAR PACKAGE)
+    set(single_value_args
+        LANG
+        OUTPUT_DIRECTORY
+        IDL_FILE
+        VAR
+        PACKAGE STRING_SIZE
+        )
     set(multi_value_args INCLUDE_DIRS DEFINES EXTRA_ARGS)
     cmake_parse_arguments(_CODEGEN
         "${options}"
@@ -609,6 +629,10 @@ function(connextdds_rtiddsgen_run)
         list(APPEND extra_flags "-example" ${CONNEXTDDS_ARCH})
     endif()
 
+    if(_CODEGEN_STRING_SIZE)
+        list(APPEND extra_flags "-stringSize" "${_CODEGEN_STRING_SIZE}")
+    endif()
+
     # Call CodeGen
     add_custom_command(
         OUTPUT
@@ -652,11 +676,6 @@ function(connextdds_rtiddsgen_run)
     set(${var_prefix}_${lang_var}_SUBSCRIBER_SOURCE ${IDL_SUBSCRIBER_SOURCE} PARENT_SCOPE)
     set(${var_prefix}_${lang_var}_HEADERS ${IDL_HEADERS} PARENT_SCOPE)
     set(${var_prefix}_${lang_var}_TIMESTAMP ${TIMESTAMP} PARENT_SCOPE)
-
-
-    message(STATUS " idl gen sources: ${IDL_GENERATED_SOURCES}")
-    message(STATUS " idl gen sources: ${var_prefix}_${lang_var}_PUBLISHER_SOURCE")
-
 endfunction()
 
 function(connextdds_rtiddsgen_convert)
