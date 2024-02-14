@@ -85,6 +85,7 @@ namespace KeysInstances
                     // using a dispose
                     var instanceHandle = lotStateWriter.LookupInstance(updatedState);
                     lotStateWriter.DisposeInstance(instanceHandle);
+                    Console.WriteLine("Lot completed");
                 }
             }
         }
