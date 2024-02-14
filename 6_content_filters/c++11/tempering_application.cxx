@@ -88,6 +88,7 @@ void process_lot(
             dds::core::InstanceHandle instance_handle =
                     lot_state_writer.lookup_instance(updated_state);
             lot_state_writer.dispose_instance(instance_handle);
+            std::cout << "Lot completed" << std::endl;
         }
     }
 }  // The LoanedSamples destructor returns the loan
