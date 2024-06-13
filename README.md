@@ -1,9 +1,9 @@
 # Getting Started with RTI Connext DDS 
 
-This example walks you through the basic steps to learn about RTI Connext DDS,
+This example walks you through the basic steps to learn about RTI Connext,
 through several hands-on examples.  All of these examples work toward creating
 a "chocolate factory," but these patterns are common across many applications.
-The patterns we will be showing  can be described in a nutshell:
+The patterns we will be showing can be described in a nutshell:
 * Streaming/sensor data (Temperature)
 * State data (Chocolate Lot State)
 
@@ -20,5 +20,3 @@ An overview of the individual examples:
       incompatible QoS policies.
     * 6_content_filters: Introduction to using ContentFilteredTopics to filter
       data.
-
-* Request/Reply Pattern
