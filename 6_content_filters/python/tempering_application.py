@@ -74,7 +74,7 @@ def process_lot(
 def on_requested_incompatible_qos(reader: dds.DataReader):
     incompatible_policy = reader.requested_incompatible_qos_status.last_policy
     print(f"Discovered DataWriter with incompatible policy: {incompatible_policy.__name__}")
-
+ 
 
 def run_example(domain_id, sensor_id):
     # Loads the QoS from the qos_profile.xml file
