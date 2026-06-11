@@ -49,22 +49,22 @@ void process_lot(
         // No need to check that this is the next station: content filter
         // ensures that the reader only receives lots with
         // next_station == this station
-        std::cout << "Processing lot #" << sample.data().lot_id() << std::endl;
+        std::cout << "Processing lot #" << sample.data().lot_id << std::endl;
 
         // Send an update that this station is processing lot
         ChocolateLotState updated_state(sample.data());
-        updated_state.lot_status(LotStatusKind::PROCESSING);
-        updated_state.next_station(StationKind::INVALID_CONTROLLER);
-        updated_state.station(station_kind);
+        updated_state.lot_status = LotStatusKind::PROCESSING;
+        updated_state.next_station = StationKind::INVALID_CONTROLLER;
+        updated_state.station = station_kind;
         lot_state_writer.write(updated_state);
 
         // "Processing" the lot.
         rti::util::sleep(dds::core::Duration(5));
 
         // Send an update that this station is done processing lot
-        updated_state.lot_status(LotStatusKind::COMPLETED);
-        updated_state.next_station(next_station.at(station_kind));
-        updated_state.station(station_kind);
+        updated_state.lot_status = LotStatusKind::COMPLETED;
+        updated_state.next_station = next_station.at(station_kind);
+        updated_state.station = station_kind;
         lot_state_writer.write(updated_state);
     }
 }  // The LoanedSamples destructor returns the loan

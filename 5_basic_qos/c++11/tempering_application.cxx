@@ -37,8 +37,8 @@ void publish_temperature(
     Temperature temperature;
     while (!shutdown_requested) {
         // Modify the data to be written here
-        temperature.sensor_id(sensor_id);
-        temperature.degrees(rand() % 3 + 30);  // Random value between 30 and 32
+        temperature.sensor_id = sensor_id;
+        temperature.degrees = rand() % 3 + 30;  // Random value between 30 and 32
 
         temperature_writer.write(temperature);
 
@@ -58,16 +58,16 @@ void process_lot(
     // Process lots waiting for tempering
     for (const auto& sample : samples) {
         if (sample.info().valid()
-            && sample.data().next_station()
+            && sample.data().next_station
                     == StationKind::TEMPERING_CONTROLLER) {
-            std::cout << "Processing lot #" << sample.data().lot_id()
+            std::cout << "Processing lot #" << sample.data().lot_id
                       << std::endl;
 
             // Send an update that the tempering station is processing lot
             ChocolateLotState updated_state(sample.data());
-            updated_state.lot_status(LotStatusKind::PROCESSING);
-            updated_state.next_station(StationKind::INVALID_CONTROLLER);
-            updated_state.station(StationKind::TEMPERING_CONTROLLER);
+            updated_state.lot_status = LotStatusKind::PROCESSING;
+            updated_state.next_station = StationKind::INVALID_CONTROLLER;
+            updated_state.station = StationKind::TEMPERING_CONTROLLER;
             lot_state_writer.write(updated_state);
 
             // "Processing" the lot.
