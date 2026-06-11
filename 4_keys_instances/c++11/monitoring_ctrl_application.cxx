@@ -33,13 +33,13 @@ void publish_start_lot(
          count++) {
         // Set the values for a chocolate lot that is going to be sent to wait
         // at the tempering station
-        sample.lot_id(count % 100);
-        sample.lot_status(LotStatusKind::WAITING);
-        sample.next_station(StationKind::TEMPERING_CONTROLLER);
+        sample.lot_id = count % 100;
+        sample.lot_status = LotStatusKind::WAITING;
+        sample.next_station = StationKind::TEMPERING_CONTROLLER;
 
         std::cout << std::endl << "Starting lot: " << std::endl;
-        std::cout << "[lot_id: " << sample.lot_id()
-                  << " next_station: " << sample.next_station() << "]"
+        std::cout << "[lot_id: " << sample.lot_id
+                  << " next_station: " << sample.next_station << "]"
                   << std::endl;
 
         // Send an update to station that there is a lot waiting for tempering
