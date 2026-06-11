@@ -53,8 +53,8 @@ void run_example(
          !shutdown_requested && count < sample_count;
          count++) {
         // Modify the data to be written here
-        sample.sensor_id(sensor_id);
-        sample.degrees(rand() % 3 + 30);  // Random number between 30 and 32
+        sample.sensor_id = sensor_id;
+        sample.degrees = rand() % 3 + 30;  // Random number between 30 and 32
 
         // Exercise #2.3 Write data with new ChocolateLotState DataWriter
 
